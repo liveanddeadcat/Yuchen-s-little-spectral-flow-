@@ -1,0 +1,228 @@
+---
+title: "Spectral profile comparison"
+author: "Yuchen Li"
+date: "2025-12-15"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(flowSpectrum)
+library(tidyverse)
+library(flowCore)
+library(data.table)
+library(matrixStats)
+set.seed(222)
+```
+
+## load data
+
+```{r}
+files <- dir("./data", pattern = "fcs$", full.names=T)
+as.matrix(files)
+dat <- lapply(files, read.FCS)
+names(dat) <-gsub("./data/","",files)
+```
+
+## get the cell and bead controls
+```{r}
+  cell_control <- dat[grepl("_c_", names(dat))]
+  bead_control <- dat[grepl("_b_", names(dat))]
+```
+
+## plotting
+```{r, fig.height= 5, fig.width=13}
+
+# make cell controls df
+p1 <- lapply(seq(2,length(cell_control), by = 2), function(i){spectralplot(cell_control[[i]], normalize = TRUE, guessPop = TRUE, unstained = cell_control[[i-1]])$data})
+
+
+# name the new list of data frames
+ names(p1) <- gsub("./data/", "",names(cell_control[seq(2,length(cell_control),2)]))
+ 
+   # add a sample column for plotting
+  for(i in 1:length(p1)){p1[[i]]$sample = names(p1)[i]}
+
+# make bead control df
+p2 <- lapply(seq(2,length(bead_control), by = 2), function(i){
+  spectralplot(bead_control[[i]], normalize = TRUE, guessPop = TRUE, unstained = bead_control[[i-1]])$data
+})
+
+
+# name the new list of data frames
+ names(p2) <- gsub("./data/", "",names(bead_control[seq(2,length(bead_control),2)]))
+
+# add a sample tag for p2
+   # add a sample column for plotting
+  for(i in 1:length(p2)){p2[[i]]$sample = names(p2)[i]}
+
+# Grab all channel names
+cvars<-gsub("\ ","",apply(expand.grid(c("UV", 'V', 'B', "YG", "R"),1:16,"-A") %>% 
+                            mutate(Var1=factor(Var1,levels=unique(Var1))) %>% 
+                            arrange(Var1,Var2),1,function(X) paste0(X,collapse="")))
+
+df <- dplyr::bind_rows(c(p1,p2))
+
+rm(p1,p2)
+
+```
+```{r, fig.width=15, fig.height=25} 
+# Loop it through all markers
+    table(df$sample)
+    
+    markers <- c("CCR7_","CD103_","CD127_","CD161_","CD25_","CD27_","CD28_","CD3_","CD38_","CD39_","CD4_","CD45_","CD69_","CD8_","CTLA4_","FOXP3_","HLADQ_","HLADR_","PD1_", "TIGIT_", "LD_")
+    
+    # make an empty list
+    plist <- list()
+    
+    # choose colours
+    colours = c("red","blue")
+    
+    # Make plots
+   for (marker in markers){
+      df %>% dplyr::filter(str_detect(sample, marker)) %>% 
+        mutate(Detector=factor(`rownames(df)`,levels=cvars[cvars %in% `rownames(df)`])) %>% 
+        ggplot(aes(Detector,medians.max.medians.,group=sample,color=sample)) + 
+        geom_line(linewidth = 0.7) + geom_point() + 
+        guides(x=guide_axis(angle=45)) + theme_bw(base_size=8) + 
+        theme(legend.text=element_text(size=5)) + 
+        theme(legend.position = "right")+
+        theme(legend.title = element_text(size=0.1))+
+        scale_color_manual(values=colours)+
+        ylab("")+
+        xlab("")+
+        ggtitle(gsub("_","", marker))-> plist[[length(plist)+1]] # put it into the list
+   }
+    
+    
+    
+
+   # check and align the plots
+    plist
+    
+ plot <-   cowplot::plot_grid(
+      plotlist = plist,
+      ncol = 2
+    )
+ 
+ plot
+    
+#savage("output.png",plot, width = 50, height = 60, units = c("cm"))
+
+
+
+# similarity matrix - "same profile" threshold is 0.98
+    corlist <- c()
+    
+  for (marker in markers){
+    df %>% 
+      filter(str_detect(sample, marker)) %>% 
+      mutate(Detector=factor(`rownames(df)`,levels=cvars[cvars %in% `rownames(df)`])) %>% 
+      select(-1) %>% 
+      pivot_wider(names_from=sample,values_from=medians.max.medians.) %>% 
+      column_to_rownames("Detector") %>% cor -> corlist[[length(corlist)+1]]
+}
+  corlist
+```
+
+## Calculate the variation of beads vs cells as controls
+
+```{r}
+## make cell controls df
+p1 <- lapply(seq(2,length(cell_control), by = 2), function(i){spectralplot(cell_control[[i]], guessPop = TRUE, unstained = cell_control[[i-1]])}$data)
+
+
+# Calculate the channel SD for each cell SS control
+sd_cell <- list()
+for (i in 1:length(p1)){
+  p1[[i]]%>% 
+  mutate(id = ceiling(row_number()/64)) %>% 
+  group_by(id) %>% 
+  pivot_wider(id_cols = id, names_from = name, values_from = value) %>% 
+    as.matrix() %>% 
+  colSds() %>% 
+    as.data.frame() -> sd_cell[[i]]
+  names(sd_cell)[i]<-names(cell_control)[i]
+}
+
+# add a sample column for plotting
+for(i in 1:length(sd_cell)){sd_cell[[i]]$sample = names(sd_cell)[i]}
+
+
+# make bead control df
+p2 <- lapply(seq(2,length(bead_control), by = 2), function(i){
+  spectralplot(bead_control[[i]], guessPop = TRUE, unstained = bead_control[[i-1]])$data
+})
+
+
+## Calculate the channel SD for each cell SS control
+sd_bead <- list()
+for (i in 1:length(p1)){
+  p2[[i]]%>% 
+  mutate(id = ceiling(row_number()/64)) %>% 
+  group_by(id) %>% 
+  pivot_wider(id_cols = id, names_from = name, values_from = value) %>% 
+    as.matrix() %>% 
+  colSds() %>% 
+    as.data.frame() -> sd_bead[[i]]
+  names(sd_bead)[i]<-names(bead_control)[i]
+}
+
+# add a sample column for plotting
+for(i in 1:length(sd_bead)){sd_bead[[i]]$sample = names(sd_bead)[i]}
+
+# Grab all channel names
+cvars<-gsub("\ ","",apply(expand.grid(c("UV", 'V', 'B', "YG", "R"),1:16,"-A") %>% 
+                            mutate(Var1=factor(Var1,levels=unique(Var1))) %>% 
+                            arrange(Var1,Var2),1,function(X) paste0(X,collapse="")))
+
+df_sd <- dplyr::bind_rows(c(sd_bead,sd_cell))
+
+sd_ss_controls <- list(
+  sd_ss_beads = sd_bead,
+  sd_ss_cells = sd_cell
+)
+
+saveRDS(sd_ss_controls,"./rds/20260223_SD_SS_BeadvCell.rds")
+```
+
+Visualisation
+
+```{r}
+df <- dplyr::bind_rows(c(sd_cell, sd_bead))
+
+table(df$sample)
+    
+    markers <- c("CCR7_","CD103_","CD127_","CD161_","CD25_","CD27_","CD28_","CD3_","CD38_","CD39_","CD4_","CD45_","CD69_","CD8_","CTLA4_","FOXP3_","HLADQ_","HLADR_","PD1_", "TIGIT_", "LD_")
+    
+    # make an empty list
+    plist <- list()
+    
+    # choose colours
+    colours = c("red","blue")
+    
+    # Make plots
+   for (marker in markers){
+      df %>% dplyr::filter(str_detect(sample, marker)) %>% 
+        mutate(Detector=factor(`rownames(df)`,levels=cvars[cvars %in% `rownames(df)`])) %>% 
+        ggplot(aes(Detector,medians.max.medians.,group=sample,color=sample)) + 
+        geom_line(linewidth = 0.7) + geom_point() + 
+        guides(x=guide_axis(angle=45)) + theme_bw(base_size=8) + 
+        theme(legend.text=element_text(size=5)) + 
+        theme(legend.position = "right")+
+        theme(legend.title = element_text(size=0.1))+
+        scale_color_manual(values=colours)+
+        ylab("")+
+        xlab("")+
+        ggtitle(gsub("_","", marker))-> plist[[length(plist)+1]] # put it into the list
+   }
+    
+    
+    
+
+   # check and align the plots
+    plist
+```
+
