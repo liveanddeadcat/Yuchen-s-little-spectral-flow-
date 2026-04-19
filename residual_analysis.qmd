@@ -1,0 +1,377 @@
+---
+title: "Residual analysis"
+format: html
+editor: visual
+---
+
+```{r, include = FALSE}
+library(tidyverse)
+library(matrixStats)
+library(corrplot)
+library(data.table)
+ggplot2::theme_set(theme_bw())
+set.seed(233)
+```
+
+
+Author: Yuchen Li
+Statistical consutation: Ryan Kmet, Dr David Novo, Elijah Willie.
+Version: 2026 Apr
+
+## Residual analysis
+
+### plot the residuals
+
+```{r, fig.width=15, fig.height=5}
+# density plots
+res <- t(res)
+colnames(res)<-aurora_channels
+res %>% 
+  as.data.frame() %>% 
+  pivot_longer(cols = colnames(res), names_to = "channel", values_to = "values") %>% 
+ggplot(aes(x = values))+
+  geom_histogram(stat = "density", col = "black", fill = "cornflowerblue")+
+  scale_x_continuous(limits = c(-1e+05, 1e+05))+
+  theme_bw()
+
+res %>% 
+  as.data.frame() %>% 
+  pivot_longer(cols = colnames(res), names_to = "channel", values_to = "values") %>% 
+ggplot(aes(x = values))+
+  geom_density(linewidth = 1, fill = "cornflowerblue")+
+  scale_x_continuous(limits = c(-1e+05, 1e+05))+
+  theme_bw()
+
+```
+
+### r vs rhat
+
+```{r, fig.width = 12, fig.height = 5}
+# Mean
+dim(r_fluo)
+mean_r_fluo <- rowMeans(r_fluo)
+mean_rhat <-rowMeans(r_hat)
+
+names(mean_rhat) <- aurora_channels
+names(mean_r_fluo) <- aurora_channels
+
+r_rhat_mean <- cbind(mean_r_fluo, mean_rhat)
+r_rhat_mean <- as.data.frame(r_rhat_mean)
+r_rhat_mean$channel <- rownames(r_rhat_mean)
+ggplot(r_rhat_mean, aes(x = mean_r_fluo, y = mean_rhat))+
+  geom_point()+
+    geom_text(aes(label = channel), hjust= 0.5,vjust = -0.5)+
+  geom_smooth(aes(colour = NULL))+
+  theme_bw()
+
+
+# Median
+med_r_fluo <- rowMedians(r_fluo)
+med_rhat <- rowMedians(r_hat)
+
+r_rhat_med <- cbind(med_r_fluo, med_rhat)
+
+r_rhat_med <- as.data.frame(r_rhat_med)
+
+r_rhat_med$channel <- aurora_channels
+
+ggplot(r_rhat_med, aes(x = med_r_fluo, y = med_rhat))+
+geom_point()+
+  geom_text(aes(label = channel), hjust= 0.5,vjust = -0.5)+
+  geom_smooth(aes(colour = NULL))+
+  theme_bw()
+r_rhat_med$residual <- med_r_fluo - med_rhat
+sd(r_rhat_med$residual)
+```
+
+### RMSE and RMEdSE
+
+```{r}
+# RMSE of r and rhat
+mse<- colMeans((res)^2)
+rmse <- sqrt(mse)
+
+# plot
+# generate a df
+df_rmse <- data.frame(channels = names(rmse), values = rmse)
+df_rmse %>% 
+  ggplot(aes(x = factor(channels, levels = aurora_channels),y = values))+
+  geom_point()+
+  theme_bw()+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.05, hjust = 0.3))
+
+```
+
+RMedSE
+
+```{r}
+medse <- colMedians((res)^2)
+rmedse <- sqrt(medse)
+
+# plot
+df_rmedse <- data.frame(channels = names(rmedse), values = rmedse)
+df_rmedse %>% 
+  ggplot(aes(x = factor(channels, levels = aurora_channels),y = values))+
+  geom_point()+
+  theme_bw()+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.05, hjust = 0.3))
+```
+
+### scale-location plot
+
+```{r}
+# calculate standardized residuals
+standard_res <- sqrt(abs(res/rowSds(res)))
+
+# Generate the plot
+
+scale_loc <- data.frame(
+  channels = colnames(standard_res),
+  standard_residuals = colMeans(standard_res),
+  fitted_values = colMeans(r_hat)
+)
+
+ggplot(scale_loc, aes(x = fitted_values, y = standard_residuals))+
+geom_point()+
+  theme_bw()+
+  scale_y_continuous(limits = c(0,1.8))
+
+```
+
+Residual plot
+
+```{r, fig.width = 9, fig.height = 5}
+# calculate median residuals
+df_med_res <- data.frame(
+  channels = colnames(res),
+  values  = colMedians(res)
+)
+
+#residual plot
+ggplot(df_med_res, aes(x = factor(channels, levels = aurora_channels), y = values))+
+  geom_point()+
+  theme_bw()+
+  geom_hline(yintercept = 0)+
+  theme(axis.text.x =element_text(angle = 90,face = "bold"))
+ggsave("./plots/residual analysis/residual_plot_CUM500_ols.png",width = 18, height = 10, units = c("cm"))
+
+```
+
+Save the residual analysis results
+
+```{r}
+res_analysis_ols <- list(
+  subsampled_r = r,
+  r_fluoescence = r_fluo,
+  r_expected = r_hat,
+  scale_location = scale_loc,
+  df_root_MedSE = df_rmedse,
+  df_root_MSE = df_rmse,
+  residuals = res,
+  standardised_residuals = standard_res
+)
+
+saveRDS(res_analysis_ols, "./rds/20260202_residual_analysis_CUM500_ols.rds")
+
+res_analysis_ols <- readRDS("./rds/20260202_residual_analysis_CUM500_ols.rds")
+res <- res_analysis_ols$residuals
+
+df_med_res <- data.frame(
+  channels = colnames(res),
+  values  = colMedians(res)
+)
+
+#residual plot
+ggplot(df_med_res, aes(x = factor(channels, levels = aurora_channels), y = values))+
+  geom_point(aes(size = 0.2))+
+  theme_bw()+
+  geom_hline(yintercept = 0)+
+  theme(axis.text.x =element_text(angle = 90,face = "bold", vjust = 0.1))+
+  theme(panel.border = element_rect(linewidth = 1))
+ggsave("./plots/residual analysis/residual_plot_CUM500_ols.png",width = 18, height = 10, units = c("cm"))
+```
+
+### Residuals correlation
+
+```{r, fig.width=15, fig.height=15}
+res_analysis <- readRDS("./rds/20260202_residual_analysis_CUM500_ols.rds")
+res <- res_analysis$residuals
+cor_res <- cor(res)
+corrplot(cor_res,method = "circle",tl.col = "black", type = c("low"))
+
+```
+
+## Calculate the variance, co-variance matrix
+
+This method was described by (Kmet & Novo, 2025)\[<https://onlinelibrary.wiley.com/doi/10.1002/cyto.a.24957>\] and mentioned in our discussion with them. It is a quick diagnostic tool to identify where the issues in unmixing comes from large spread and variation in AF (elements on the diagonal) or potential dye interactions (off-diagonal elements).
+
+### Calculate residuals
+
+Model residuals are calculated by predicted total signals reconstructed by Ma - observed signals. M is the spectral profile matrix we calculated in the OLS unmixing section. a is the 'abundances' i.e. unmixed data. The below codes assumes that you have done OLS unmixing and saved the OLS unmixed results. If you don't have an object saved, please run through the OLS unmixing script first.
+
+```{r}
+# load the object
+ols_unmix <- readRDS("./rds/OLS_unmixing.rds") 
+
+# take the unmixed fluorescence channel data
+a <- ols_unmix$Unmixed_fluo_channels
+
+# Retrive the estimated total signal from Ma 
+m <- ols_unmix$Spectral_matrix 
+r_hat <- m%*%a  
+
+# Calculate residuals 
+res <- r_fluo - r_hat 
+dim(res) #quick check
+```
+
+
+### Calculate residual variance and the (M^T M)^(-1) portion
+
+I use *data.table*'s matrix transpose function cause it's faster on my laptop. 
+
+```{r, fig.height=12, fig.width=18}
+# calculate variance
+var <- var(as.vector(re))
+
+# calculate (M^T M)^(-1)
+# Calculate M^T
+m <- as.data.table(m)
+m_t<- transpose(m)
+m <- as.matrix(m)
+m_t <- as.matrix(m_t)
+
+# caclulate the variance, co-variance matrix
+vcv <- var*mtm
+
+# visualise
+pheatmap(vcv, cluster_cols = F, cluster_rows = F, show_rownames = T)
+corrplot(vcv)
+```
+
+## Investigate the inherent correlation between fluorophores using SS control profiles
+
+```{r,fig.width =10, fig.height = 10}
+spectral_matrix <- ols_unmix$Spectral_matrix
+cor_m<- cor(spectral_matrix)
+corrplot(cor_m, type = c("lower"), tl.col = "black")
+```
+
+## Investigate the residuals after unmixing with AF
+
+In R, we can also calculate the classical model diagnostics than using software. For what it's worth: I calculated the residuals from unmixing without AF extraction, and found that the largest errors line perfectly with AF hotspots. The unmixing was largely improved by adding the unstained sample and the AF parameter, even though I'm not studying a typical "AF high" cell type.\ 
+
+Below are a few examples for quick residual analysis.
+
+### Quickly plot the residuals
+
+This should be roughly approaching normal, as we have millions of events with potential Poisson noise (although not completely Poisson).
+
+```{r, fig.width=15, fig.height=5}
+# density plots with the Aurora channel order
+res <- t(res)
+aurora_channels <- readRDS("./rds/aurora_channels.rds")
+colnames(res)<-aurora_channels
+res %>% 
+  as.data.frame() %>% 
+  pivot_longer(cols = colnames(res), names_to = "channel", values_to = "values") %>% 
+ggplot(aes(x = values))+
+  geom_density(linewidth = 1, fill = "cornflowerblue")+
+  scale_x_continuous(limits = c(-1e+05, 1e+05))+
+  theme_bw()
+```
+
+### Scale-location plot
+
+```{r}
+# calculate standardized residuals
+res <- as.data.table(res)
+res <- transpose(res)
+res<- as.matrix(res)
+standard_res <- sqrt(abs(res/rowSds(res)))
+
+# Generate the plot
+scale_loc <- data.frame(
+  channels = aurora_channels,
+  standard_residuals = rowMeans(standard_res),
+  fitted_values = rowMeans(r_hat)
+)
+
+ggplot(scale_loc, aes(x = fitted_values, y = standard_residuals))+
+geom_point()+
+  theme_bw()+
+  scale_y_continuous(limits = c(0,1.8))
+```
+
+Residual plot.
+
+```{r, fig.width = 9, fig.height = 5}
+# calculate median residuals
+df_med_res <- data.frame(
+  channels = rownames(r_hat),
+  values  = colMedians(res)
+)
+
+#residual plot
+ggplot(df_med_res, aes(x = factor(channels, levels = aurora_channels), y = values))+
+  geom_point()+
+  theme_bw()+
+  geom_hline(yintercept = 0)+
+  theme(axis.text.x =element_text(angle = 90,face = "bold"))
+ggsave("./plots/residual analysis/residual_plot_CUM500_ols_withAF.png",width = 18, height = 10, units = c("cm"))
+```
+
+### Investigate the residuals variances and channel MFI
+
+```{r}
+# Transpose residuals as the channels as columns
+res <- as.data.table(res)
+res <- transpose(res)
+res<- as.matrix(res)
+colnames(res) <- aurora_channels
+res_variance <- colVars(res)
+res_sd <- colSds(res)
+
+# Load the raw sample fs data
+fs <- ols_unmix$raw_sample_flowframe
+expr <- exprs(fs)
+expr <- expr[,aurora_channels]
+expr_med <- colMedians(expr)
+expr_mean <- colMeans(expr)
+expr_sd <- colSds(expr)
+
+#Calculate summary stats
+df <- data.frame(Channel_mean = expr_mean,
+                Channel_median = expr_med,
+                Channel_SD = expr_sd,
+                Channels = names(expr_mean),
+                Residual_SD = res_sd,
+                Residual_variance = res_variance)
+
+# Plotting residuals against the channel signal intensities
+ggplot(df, aes(x = Channel_mean, y = Residual_SD, colour = factor(Channels, levels = aurora_channels)))+
+  geom_point(aes(size=0.5),show.legend = FALSE)+
+  geom_smooth(method = "lm", colour = "blue")+
+  theme_bw()+
+  scale_color_viridis_d()+
+  theme(panel.border = element_rect(linewidth = 1))
+
+ggplot(df, aes(x = Channel_median, y = Residual_SD, colour = factor(Channels, levels = aurora_channels)))+
+  geom_point(aes(size=0.5),show.legend = FALSE)+
+  geom_smooth(method = "lm", colour = "red")+
+  theme_bw()+
+  scale_color_viridis_d()+
+  theme(panel.border = element_rect(linewidth = 1))
+
+cor(df$Residual_SD, df$Channel_mean)
+cor(df$Residual_SD, df$Channel_median)
+
+# Calculate sum of squared mean errors
+mean_sse <- sum((colMeans(res))^2)
+```
+
+```{r}
+# For a quick record
+sessionInfo()
+```
+
