@@ -1,10 +1,13 @@
 # Yuchen-s-little-spectral-flow
 Anything Yuchen's spectral flow analysis workflows. Including template scripts of comparing spectral profiles, spectral unmixing, statistics around evaluation of unmixing, downstream analysis: data integraion, statistics, clustering, data visualisation etc.
 
+## A bit about me
+I'm a PhD student in Immunology and HIV infection. I jump between long wet lab hours and long computer hours...
+
 ## Little Spec
 It all started one day when I was learning spectral flow cytometry, and we have to book analysis PCs to play around with spectral unmixing. It's so hard to get in a time slot in our institutes, and it's a long, tiring walk for me to go up and downstairs several times. Then I thought to myself: it sounds like simple math, why would I have to use certain software? Then these scripts became the end result :P.
 
-This repo is a workflow from reference control to unmixing and high-parameter analysis of flow data. I didn't really invent new method here, more like collected the tools into a toolkit from the beginning to the end of flow analysis. The handmade math content in this repo is no more than basic linear algebra and linear modeling techniques. 
+This repo is a workflow made by a wet-lab scientist for wet-lab scientists. From reference control to unmixing and high-parameter analysis of flow data. I didn't really invent new method here, more like collected the tools into a toolkit from the beginning to the end of flow analysis. The handmade math content in this repo is no more than basic linear algebra and linear modeling techniques. 
 
 Don't worry if that's causing mathphobia. As long as you get all elements ready and in the right formats, you can do these calculations following the instructions in the scripts!
 
