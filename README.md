@@ -5,8 +5,8 @@ Anything Yuchen's spectral flow analysis workflows. Including template scripts o
 ## Little Spec
 
 1. Compare and visualise the spectral profiles of your reference controls
-2. Spectral unmixing with AF extraction
-3. Different unmixing models
+2. OLS spectral unmixing with AF extraction
+3. Other unmixing methods: Weighted LS, Ridge regression (developing)
 4. Evaluate your unmixing model via statistical methods
 5. Downstream analysis on unmixed data: data transformation, integration, clustering.
 
