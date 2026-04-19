@@ -2,12 +2,14 @@
 Anything Yuchen's spectral flow analysis workflows. Including template scripts of comparing spectral profiles, spectral unmixing, statistics around evaluation of unmixing, downstream analysis: data integraion, statistics, clustering, data visualisation etc.
 
 ## Little Spec
+This repo is a complete workflow from reference control to unmixing and high-parameter analysis of flow data. I didn't really invent new method here, more like collected the tools into a toolkit from the beginning to the end. The handmade math content in this repo is no more than basic linear algebra and linear modeling techniques. Don't worry if that's causing mathphobia. As long as you get all elements ready and in the right formats, you can do these calculations following the instructions in the scripts!
 
 1. Compare and visualise the spectral profiles of your reference controls
 2. OLS spectral unmixing with AF extraction
 3. Other unmixing methods: Weighted LS, Ridge regression (developing)
 4. Evaluate your unmixing model via statistical methods
-5. Downstream analysis on unmixed data: data transformation, integration, clustering.
+5. Visulisation of unmixed data
+6. Downstream analysis on unmixed data: data transformation, integration, clustering.
 
 ## Get started
 You need to get a few things ready before you start using scripts in this repo:
