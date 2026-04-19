@@ -380,6 +380,6 @@ saveRDS(OLS_unmixed,paste0("./rds/OLS_unmixed_wAF_",sample_name, ".rds"))
 rm(ff, sample, pseudo_inver_M, spectra_matrix, svd_M, t_unmixed_matrix, df)
 ```
 
-Note: This is the most straightforward AF extraction method. From my experience and on consultation of Dr Novo, adding in the very matching AF background (this including treating your unstained sample EXACTLY the same with your full-stained sample) as a separate parameter largely improves unmixing. This applies to the cells that are not traditionally considered "autofluorescence heavy" too, for example, T cells. Dr Novo's team also has recent publication on their more complex unmixing methods. However, optimising experimental conditions upstream is the most important. OLS is the method used by software like *Spectroflo*.
+Note: This is the most straightforward AF extraction method. From my experience and on consultation of Dr Novo, adding in the very matching AF background (this including washing and perming your unstained sample the same with your full-stained sample, using matched unstained cells) as a separate parameter largely improves unmixing. This applies to the cells that are not traditionally considered "autofluorescence heavy" too, for example, T cells. Dr Novo's team also has recent publication on their more complex unmixing methods. However, optimising experimental conditions upstream is the most important. OLS is the method used by software like *Spectroflo*.
 
 
