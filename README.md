@@ -34,7 +34,7 @@ The calculation of spectral profiles in this repo is from flowSpectrum and is ba
 This repo successfully re-creates the unmixing results comparable to the unmixing in Spectroflo software, using linear algebra in R. And it lets you investigate your unmixing results freely. You can therefore pinpoint how you can adjust your experiments. WLS unmixing is also explored. And the users are highly encouraged to explore the ways to calculate weights, and other unmixing methods, if you are sure that you have optimised experimental conditions.
 
 ## Consultation
-The author acknowledges help from Dr David Novo, Ryan Kmet, Dr Elijah Willie, and the support from supervisors Dr Tom O'Neil, Dr Kirstie Bertram, and Prof Najla Nasr.
+The author acknowledges help from Dr David Novo, Ryan Kmet, Dr Elijah Willie, Edwin Lau, Suat Dervish, and the support from supervisors Dr Tom O'Neil, Dr Kirstie Bertram, and Prof Najla Nasr.
 
 ## Contact me
 [Email me](mailto:yuchen.li@sydney.edu.au)
