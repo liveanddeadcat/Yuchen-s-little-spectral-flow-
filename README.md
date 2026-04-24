@@ -21,7 +21,7 @@ You need to get a few things ready before you start using scripts in this repo:
 1. R, Rstudio, install all the packages
 2. A machine that has >4G RAM and a fair CPU
 3. Have run your single-stained controls, full-stained sample, unstained sample and have the .fcs files
-4. Go to an easy UI (flowjo, FCSExpress if you have license. I found CytoExploreR by RGLab useful for gating in R), gate reference controls positive and negative populations, export as .fcs. Store them in a folder \ref controls. Name them accordingly, e.g. CD3_BV650_neg, CD3_BV650_pos
+4. Go to an easy UI (flowjo, FCSExpress if you have license. I found CytoExploreR useful for gating in R and displaying spectral cytometry data), gate reference controls positive and negative populations, export as .fcs. Store them in a folder \ref controls. Name them accordingly, e.g. CD3_BV650_neg, CD3_BV650_pos
 5. If you like, gate the unstained sample by the size gate, and export as .fcs, store it in \af. You can explore using multiple AFs too. Just add more AF parameters in your model.
 6. Start with the OLS unmixing script! Enjoy your time not having to book analysis PCs :P
 
