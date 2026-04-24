@@ -268,7 +268,7 @@ write.FCS(ff, filename = paste0("ols_mtm_unmixed_", sample_name, ".fcs"))
 
 ## OLS unmixing with AF extraction
 
-Unmixing with AF extraction extracts the spectrum of the matched unstained sample and model the total signals using fluorophores + an AF parameter. This is a 
+Unmixing with AF extraction extracts the spectrum of the matched unstained sample and model the total signals using fluorophores + an AF parameter.
 
 Simply load in the cleaned-up usntained sample as well when you build the spectral matrix.
 
