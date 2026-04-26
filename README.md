@@ -19,7 +19,7 @@ Don't worry if that's causing mathphobia. As long as you get all elements ready 
 ## Get started
 You need to get a few things ready before you start using scripts in this repo:
 1. R, Rstudio, install all the packages
-2. A machine that has >4G RAM and a fair CPU
+2. A machine that has >4G RAM and a fair CPU. Preferred if you configure your R, Rstudio, VScode, and python so that they can use more GPU resources.
 3. Have run your single-stained controls, full-stained sample, unstained sample and have the .fcs files
 4. Go to an easy UI (flowjo, FCSExpress if you have license. I found CytoExploreR useful for gating in R and displaying spectral cytometry data), gate reference controls positive and negative populations, export as .fcs. Store them in a folder \ref controls. Name them accordingly, e.g. CD3_BV650_neg, CD3_BV650_pos
 5. If you like, gate the unstained sample by the size gate, and export as .fcs, store it in \af. You can explore using multiple AFs too. Just add more AF parameters in your model.
