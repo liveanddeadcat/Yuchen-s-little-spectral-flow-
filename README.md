@@ -5,7 +5,7 @@ Anything Yuchen's spectral flow analysis workflows. Including template scripts o
 I'm a PhD student in Immunology and HIV infection. I jump between long wet lab hours and long computer hours...
 
 ## Little Spec
-This repo is a workflow made by a wet-lab scientist for wet-lab scientists. From reference control to unmixing and high-parameter analysis of flow data. Other than the ridge regression unmixing, I didn't really invent new method here, more like collected the tools into a toolkit from the beginning to the end of flow analysis. The handmade math content in this repo is no more than basic linear algebra and linear modeling techniques. 
+This repo is a workflow made by a wet-lab scientist for wet-lab scientists. From reference control to unmixing and high-parameter analysis of flow data. Other than the ridge regression unmixing, I didn't really invent new method here, more like collected the tools into a toolkit from the beginning to the end of flow analysis. The handmade math content in this repo is no more than basic linear algebra and regression techniques. 
 
 Don't worry if that's causing mathphobia. As long as you get all elements ready and in the right formats, you can do these calculations following the instructions in the scripts!
 
