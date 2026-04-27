@@ -1,0 +1,177 @@
+```{r setup, include=FALSE}
+library(flowCore)
+library(tidyverse)
+library(flowSpectrum)
+library(ggcyto)
+library(pheatmap)
+library(matrixStats)
+library(corrplot)
+library(data.table)
+set.seed(233)
+library(reticulate)
+```
+
+```{python}
+# Load packages
+import numpy as np
+from sklearn import linear_model
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import mean_squared_error
+import pandas as pd
+import fcsparser
+np.random.seed(233)
+```
+
+If you really hate those negative values in unmixed data, NNLS might be a good option for you. Compared to OLS, it adds a non-negative constraint to the abundances. So the negative values get assigned 0 instead. I personally don't think this one is that good in practice, cause it literally makes the values near 0 a very thin line. It's harder to identify the -ve population and where the gates are. At least in my data. But you are welcomed to give it a go.
+
+Before start, build the spectral matrix then convert your spectral matrix from R into a .csv to load in as a python object.
+
+-   You can also use packages like rds2py to convert data between these 2 languages.
+
+```{r}
+# load reference controls
+file.dir <-"./ref controls"
+files <- dir("./ref controls", pattern = "fcs$", full.names=T)
+
+# read in fcs files
+dat <- lapply(files, read.FCS)
+names(dat) <-gsub("./ref controls/","",files)
+
+p1 <- lapply(seq(2,length(dat), by = 2), function(i){spectralplot(dat[[i]], normalize = TRUE, guessPop = TRUE, unstained = dat[[i-1]])$data})
+
+#Name the list of new dfs
+ names(p1) <- gsub("./ref control/", "",names(dat[seq(2,length(dat),2)]))
+ names(p1) <- gsub("_pos.fcs", "",names(dat[seq(2,length(dat),2)]))
+ print(as.matrix(names(p1)))
+
+### If using flowjo exported files: switch to this exact order of channels.
+
+aurora_channels <- c('UV1-A',  'UV2-A',  'UV3-A',  'UV4-A',  'UV5-A',  'UV6-A',  'UV7-A',  'UV8-A',  'UV9-A',  'UV10-A','UV11-A', 'UV12-A', 'UV13-A', 'UV14-A', 'UV15-A', 'UV16-A', 'V1-A',   'V2-A',  'V3-A',   'V4-A',   'V5-A',   'V6-A',   'V7-A',   'V8-A',   'V9-A',   'V10-A',  'V11-A',  'V12-A',  'V13-A',  'V14-A',  'V15-A',  'V16-A',  'B1-A',   'B2-A',   'B3-A',   'B4-A',  'B5-A',   'B6-A',   'B7-A',   'B8-A',   'B9-A',   'B10-A',  'B11-A',  'B12-A',  'B13-A',  'B14-A',  'YG1-A',  'YG2-A',  'YG3-A',  'YG4-A',  'YG5-A',  'YG6-A',  'YG7-A',  'YG8-A', 'YG9-A',  'YG10-A', 'R1-A',   'R2-A',   'R3-A',   'R4-A',   'R5-A',   'R6-A',   'R7-A',   'R8-A'  )
+
+# You can also save the aurora_channels.rds for future easy use.
+
+# Reorder the channels
+for (i in 1:length(p1)){
+  p1[[i]] <- p1[[i]][match(aurora_channels, p1[[i]]$`rownames(df)`),]
+}
+
+#### fetch the channel names directly if you export data from cytek software
+ cvars<-gsub("\ ","",apply(expand.grid(c("UV", 'V', 'B', "YG", "R"),1:16,"-A") %>% 
+                            mutate(Var1=factor(Var1,levels=unique(Var1))) %>% 
+                            arrange(Var1,Var2),1,function(X) paste0(X,collapse="")))
+
+# add a sample column for plotting
+  for(i in 1:length(p1)){p1[[i]]$sample = names(p1)[i]}
+
+# combine the df into a big df
+df <- df <- dplyr::bind_rows(c(p1))
+
+# Add the AF parameter in
+dir <- "./af"
+files <- dir(dir, pattern = "fcs$", full.names=T)
+as.matrix(files)
+
+# read in fcs files
+dat <- lapply(files, read.FCS)
+
+# tidy up the file names as you wish, if you need to
+#names(dat) <-gsub("./af/export_","",files)
+#names(dat) <-gsub("_2026.*","",names(dat))
+
+# Extract normalised spectra
+af <- lapply(1:length(dat), function(i){spectralplot(dat[[i]], normalize = TRUE)$data})
+names(af) <- names(dat)
+
+# Reorder the channels
+af<- af[match(aurora_channels, af$`rownames(df)`),]
+
+### construct the unmixing matrix with AF
+# add AF to the control set
+spectra_matrix <-as.data.frame(spectra_matrix)
+spectra_matrix$AF <- af$`medians.max.medians.`
+
+write.csv(spactra_matrix,"spectral_matrix.csv")
+```
+
+Load data.
+
+```{python}
+# read data
+path = "path/to/full-stained raw data.fcs"
+
+# parse both metadata and data, get the expression values into a data frame
+meta,data = fcsparser.parse(path, meta_data_only=False, reformat_meta=True)
+
+# have a look
+print(type(data))
+data
+
+# read in the spectral matrix
+M = pd.read_csv("./spectral_matrix.csv")
+print(type(M))
+
+# take only the fluorescence channels from the raw data
+Y = data.filter(regex="(UV|V|B|YG|R)(\d+)")
+print(Y.columns)
+
+# store the other half of the data
+C = data.drop(columns=Y.columns)
+
+# transpose to have channels as row names
+YT = Y.T
+
+# final checks
+print(YT.shape)
+print(M.shape)
+print(type(M))
+print(type(YT))
+print(M.columns)
+```
+
+```{python}
+# build the model
+# train-test split
+x_train, x_test, y_train, y_test = train_test_split(M, YT, test_size=0.25,
+                                                    random_state=42)
+# fit the model
+m1 = linear_model.LinearRegression(positive=True)
+nnls = m1.fit(x_train, y_train)
+
+# Look at the residuals
+y_pred_nnls = nnls.predict(x_test)
+print(mean_squared_error(y_test, y_pred_nnls))
+
+# Get the coefficients
+print(nnls.coef_.shape)
+
+# generate a df
+feature_names = M.columns
+
+A = pd.DataFrame(
+    nnls.coef_,
+    columns=feature_names
+)
+print(A)
+
+# stick A back to the non-fluorescence channels
+unmixed=pd.concat([A,C],axis=1)
+
+# Write the .csv
+unmixed.to_csv('nnls_unmixed_cum500.csv', index=False)
+
+```
+
+Load back the unmixed df in R env, and write to FCS.
+
+```{r}
+# process and write fcs
+a <- read.csv("nnls_unmixed_cum500.csv")
+a<- as.matrix(a)
+a_ff<-flowFrame(a)
+write.FCS(a_ff, "nnls_unmixed_cum500wAF.fcs")
+saveRDS(a, "20260426_nnls_unmixed_cum500wAF.rds")
+rm(ols, M, a, a_ff)
+gc()
+```
+
+Note: I put python and R codes interchangbly for an all-in-one workflow. But if you have VS Code and are comfortable at using it, I still suggest you to use that for running python codes then jump back to Rstudio to run all those data format conversions. Python kernel has to go through reticulate in quarto documents, so it's slower to run here. VS Code also has autofilling for python codes if you like it.
