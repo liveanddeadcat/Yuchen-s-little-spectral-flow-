@@ -289,7 +289,14 @@ af <- lapply(1:length(dat), function(i){spectralplot(dat[[i]], normalize = TRUE)
 names(af) <- names(dat)
 
 # Reorder the channels
+for (i in 1:length(af)){
+  af[[i]] <- af[[i]][match(aurora_channels, af[[i]]$`rownames(df)`),]
+}
+
+# E.g. only taking one AF.
+af <- af[[1]]
 af<- af[match(aurora_channels, af$`rownames(df)`),]
+af$sample <- "AF"
 
 ### construct the unmixing matrix with AF
 # add AF to the control set
