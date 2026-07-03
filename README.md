@@ -32,7 +32,7 @@ The calculation of spectral profiles in this repo is from flowSpectrum and is ba
 This repo successfully re-creates the OLS unmixing results comparable to the unmixing in Spectroflo software, using linear algebra in R. And it lets you investigate your unmixing results freely. You can therefore pinpoint how you can adjust your experiments. Other unmixing methods are also explored. I found that Ridge regression works the best for my own data so far. Feel free to try and see.
 
 ## Consultation
-The author acknowledges help from Dr David Novo, Ryan Kmet, Dr Elijah Willie, Edwin Lau, Suat Dervish, and the support from supervisors Dr Tom O'Neil, Dr Kirstie Bertram, and Prof Najla Nasr.
+The author acknowledges help from Dr David Novo, Ryan Kmet, Dr Elijah Willie, Prof Ellis Patrick, Edwin Lau, Suat Dervish, and the support from supervisors Dr Tom O'Neil, Dr Kirstie Bertram, and Prof Najla Nasr.
 
 ## Contact me
 [Email me](mailto:yuchen.li@sydney.edu.au)
