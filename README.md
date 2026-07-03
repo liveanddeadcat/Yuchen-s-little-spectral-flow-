@@ -9,7 +9,7 @@ This repo is a workflow made by a wet-lab scientist for wet-lab scientists. From
 
 Don't worry if that's causing mathphobia. As long as you get all elements ready and in the right formats, you can do these calculations following the instructions in the scripts!
 
-1. Compare and visualise the spectral profiles of your reference controls
+1. Gate reference control populations you want. Compare and visualise the spectral profiles of your reference controls
 2. OLS spectral unmixing with AF extraction
 3. Other unmixing methods: Weighted LS, NNLS, Ridge regression
 4. Evaluate your unmixing model via statistical methods
