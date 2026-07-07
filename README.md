@@ -11,7 +11,7 @@ Don't worry if that's causing mathphobia. As long as you get all elements ready 
 
 1. Gate reference control populations you want. Compare and visualise the spectral profiles of your reference controls
 2. OLS spectral unmixing with AF extraction
-3. Other unmixing methods: Weighted LS, beta NNLS. I'm working with colleagues from math school for other models.
+3. Other unmixing methods: Weighted LS, beta-testing NNLS. I'm working with colleagues from math school for other models.
 4. Evaluate your unmixing model via statistical methods
 5. Gating and visulisation of unmixed data
 6. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
