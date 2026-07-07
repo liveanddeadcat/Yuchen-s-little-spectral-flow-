@@ -11,9 +11,9 @@ Don't worry if that's causing mathphobia. As long as you get all elements ready 
 
 1. Gate reference control populations you want. Compare and visualise the spectral profiles of your reference controls
 2. OLS spectral unmixing with AF extraction
-3. Other unmixing methods: Weighted LS, NNLS, Ridge regression (working on it)
+3. Other unmixing methods: Weighted LS, beta NNLS. I'm working with colleagues from math school for other models.
 4. Evaluate your unmixing model via statistical methods
-5. Visulisation of unmixed data
+5. Gating and visulisation of unmixed data
 6. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
 
 ## Get started
@@ -29,7 +29,7 @@ You need to get a few things ready before you start using scripts in this repo:
 The calculation of spectral profiles in this repo is from flowSpectrum and is based on max median intensity normalisation (peak-normalisation).
 
 ## Unmixing
-This repo successfully re-creates the OLS unmixing results comparable to the unmixing in Spectroflo software, using linear algebra in R. And it lets you investigate your unmixing results freely. You can therefore pinpoint how you can adjust your experiments. Other unmixing methods are also explored. I found that Ridge regression works the best for my own data so far. Feel free to try and see.
+This repo successfully re-creates the OLS unmixing results comparable to the unmixing in Spectroflo software, using linear algebra in R. And it lets you investigate your unmixing results freely. You can therefore pinpoint how you can adjust your experiments. Other unmixing methods are also explored.
 
 ## Consultation
 The author acknowledges help from Dr David Novo, Ryan Kmet, Dr Elijah Willie, Prof Ellis Patrick, Edwin Lau, Suat Dervish, and the support from supervisors Dr Tom O'Neil, Dr Kirstie Bertram, and Prof Najla Nasr.
