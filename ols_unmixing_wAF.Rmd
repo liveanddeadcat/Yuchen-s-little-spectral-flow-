@@ -50,14 +50,14 @@ p1 <- lapply(seq(2,length(dat), by = 2), function(i){spectralplot(dat[[i]], norm
  print(as.matrix(names(p1)))
 
  # Re-order the channels if you need to, if you pre-gate your controls in flowjo
-aurora_channels <- c('UV1-A',  'UV2-A',  'UV3-A',  'UV4-A',  'UV5-A',  'UV6-A',  'UV7-A',  'UV8-A',  'UV9-A',  'UV10-A','UV11-A', 'UV12-A', 'UV13-A', 'UV14-A', 'UV15-A', 'UV16-A', 'V1-A',   'V2-A',  
-'V3-A',   'V4-A',   'V5-A',   'V6-A',   'V7-A',   'V8-A',   'V9-A',   'V10-A',  'V11-A',  'V12-A',  'V13-A',  'V14-A',  'V15-A',  'V16-A',  'B1-A',   'B2-A',   'B3-A',   'B4-A',  'B5-A',   'B6-A',   'B7-A',   'B8-A',   'B9-A',   'B10-A',  'B11-A',  'B12-A',  'B13-A',  'B14-A',  'YG1-A',  'YG2-A',  'YG3-A',  'YG4-A',  'YG5-A',  'YG6-A',  'YG7-A',  'YG8-A', 'YG9-A',  'YG10-A', 'R1-A',   'R2-A',   'R3-A',   'R4-A',   'R5-A',   'R6-A',   'R7-A',   'R8-A'  )
-
-# Reorder the channels
-for (i in 1:length(p1)){
-  p1[[i]] <- p1[[i]][match(aurora_channels, p1[[i]]$`rownames(df)`),]
-}
- 
+# aurora_channels <- c('UV1-A',  'UV2-A',  'UV3-A',  'UV4-A',  'UV5-A',  'UV6-A',  'UV7-A',  'UV8-A',  'UV9-A',  'UV10-A','UV11-A', 'UV12-A', 'UV13-A', 'UV14-A', 'UV15-A', 'UV16-A', 'V1-A',   'V2-A',  
+# 'V3-A',   'V4-A',   'V5-A',   'V6-A',   'V7-A',   'V8-A',   'V9-A',   'V10-A',  'V11-A',  'V12-A',  'V13-A',  'V14-A',  'V15-A',  'V16-A',  'B1-A',   'B2-A',   'B3-A',   'B4-A',  'B5-A',   'B6-A',   'B7-A',   'B8-A',   'B9-A',   'B10-A',  'B11-A',  'B12-A',  'B13-A',  'B14-A',  'YG1-A',  'YG2-A',  'YG3-A',  'YG4-A',  'YG5-A',  'YG6-A',  'YG7-A',  'YG8-A', 'YG9-A',  'YG10-A', 'R1-A',   'R2-A',   'R3-A',   'R4-A',   'R5-A',   'R6-A',   'R7-A',   'R8-A'  )
+# 
+# # Reorder the channels
+# for (i in 1:length(p1)){
+#   p1[[i]] <- p1[[i]][match(aurora_channels, p1[[i]]$`rownames(df)`),]
+# }
+#  
 # add a sample column for plotting
   for(i in 1:length(p1)){p1[[i]]$sample = names(p1)[i]}
  
@@ -192,7 +192,6 @@ colnames(t_unmixed_matrix) <- gsub("_","_unmixed_", colnames(t_unmixed_matrix))
 #Add these columns to the Time and FSC, SSC channels
 unmixed_data <- cbind(exprs(sample[,sample@parameters@data$name[!sample@parameters@data$name %in% df$`rownames(df)`]]),
       t_unmixed_matrix)
-rm(p1,dat)
 ```
 
 ### Write out the data
@@ -203,13 +202,9 @@ ff <- flowFrame(as.matrix(unmixed_data))
 write.FCS(ff, filename = paste0("ols_unmixed_bead_and_cell_", sample_name, ".fcs"))
 # Save the unmixing results
 saveRDS(unmixed_data,paste0("./rds/OLS_unmixed_beadandcell_wAF_",sample_name, ".rds"))
-
-# clean up temporary objects
-rm(ff, sample, pseudo_inver_M, svd_M, t_unmixed_matrix, df)
-
 ```
 
-### Calculate var x (M^T M)^(-1)
+### Calculate (M^T M)^(-1)
 
 This is the fluorescence component of a variance, co-variance matrix from Kmet, 2025. This is one way to quickly see if you have AF or fluorophore interactions in your reference control panel.
 
@@ -220,16 +215,17 @@ M <- as.data.table(M)
 M_t <- transpose(M)
 M <- as.matrix(M)
 M_t <- as.matrix(M_t)
+rownames(M_t)<- colnames(M)
+
 # (M^T M)^(-1) (Kmet, 2025, the endmember-dependent component of the spectra)
-mtm <- (M_t %*% M)^(-1)
-rownames(mtm) <- colnames(mtm)
-saveRDS(mtm, "./rds/mtm-1.rds")
+mtm_1 <- solve(M_t %*% M)
+saveRDS(mtm_1, "./rds/mtm-1.rds")
 
 # plotting
-mtm <- readRDS("./rds/mtm-1.rds")
-mtm[upper.tri(mtm)] <- NA
+mtm_1 <- readRDS("./rds/mtm-1.rds")
+mtm_1[upper.tri(mtm)] <- NA
 
-mtm %>% 
+mtm_1 %>% 
   reshape2::melt() %>% 
 ggplot(aes(x = Var2, y = Var1, fill = value)) +
   geom_tile(color = "white", linewidth = 0.5) + # white grid lines
@@ -249,5 +245,34 @@ ggplot(aes(x = Var2, y = Var1, fill = value)) +
     panel.grid = element_blank()
   ) +
   labs(fill = "Value", x = NULL, y = NULL)
+```
+
+### Unmix via OLS solver a^hat = (M^T M)^(-1) M^T r
+
+If your panel isn't large, you can try using this formula to solve the unmixing.
+
+```{r}
+# unmixing matrix
+pseudo_inver_M <- mtm_1 %*% M_t
+colnames(pseudo_inver_M)<- cvars[cvars %in% df$`rownames(df)`]
+
+# Applying unmixing matrix
+unmixed_matrix <- pseudo_inver_M %*% sample_fluo
+
+# Transpose to make the cells on rows again to match the original data
+t_unmixed_matrix <- t(unmixed_matrix)
+rm(unmixed_matrix, sample_fluo)
+
+colnames(t_unmixed_matrix) <- gsub("_","_unmixed_", colnames(t_unmixed_matrix))
+
+#Add these columns to the Time and FSC, SSC channels
+unmixed_data <- cbind(exprs(sample[,sample@parameters@data$name[!sample@parameters@data$name %in% df$`rownames(df)`]]),
+      t_unmixed_matrix)
+
+# write the fcs file
+ff <- flowFrame(as.matrix(unmixed_data))
+write.FCS(ff, filename = paste0("ols_unmixed_bead_and_cell_", sample_name, ".fcs"))
+# Save the unmixing results
+saveRDS(unmixed_data,paste0("./rds/OLS_unmixed_beadandcell_wAF_",sample_name, ".rds"))
 ```
 
