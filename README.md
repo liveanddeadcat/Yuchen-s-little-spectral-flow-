@@ -9,12 +9,14 @@ This repo is a workflow made by a wet-lab scientist for wet-lab scientists. From
 
 Don't worry if that's causing mathphobia. As long as you get all elements ready and in the right formats, you can do these calculations following the instructions in the scripts!
 
-1. Gate reference control populations you want. Compare and visualise the spectral profiles of your reference controls
-2. OLS spectral unmixing with AF extraction
-3. Other unmixing methods: Weighted LS (Update 29/07/2026: the way I formatted the WLS might be incorrect in the current script. I will test the supposed way and update if correct), beta-testing NNLS. I'm working with colleagues from math school for other models.
-4. Evaluate your unmixing model via statistical methods
-5. Gating and visulisation of unmixed data
-6. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
+1. Gate reference control populations you want. Compare and visualise the fluorophore signatures extracted from your reference controls
+2. 2 essential matrices to calculate to indicate if there's any potential dye interaction in your fluorophore signatures: covariance matrix and cosine similarity matrix
+3. OLS spectral unmixing with AF extraction
+4. I'm working with colleagues from math school for other unmixing model or fluorophore signature evaluation metrics.
+5. Other unmixing methods: Weighted LS (Update 29/07/2026: the way I formatted the WLS might be incorrect in the current script. I will test the supposed way and update if correct), beta-testing NNLS. I'm working with colleagues from math school for other models.
+6. Evaluate your unmixing model via statistical methods
+7. Gating and visulisation of unmixed data
+8. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
 
 ## Get started
 You need to get a few things ready before you start using scripts in this repo:
