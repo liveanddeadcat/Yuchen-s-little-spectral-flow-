@@ -13,8 +13,6 @@ library(tidyverse)
 library(flowCore)
 library(flowSpectrum)
 library(ggcyto)
-library(pheatmap)
-library(Spectre)
 library(matrixStats)
 library(corrplot)
 library(data.table)
@@ -276,3 +274,9 @@ write.FCS(ff, filename = paste0("ols_unmixed_bead_and_cell_", sample_name, ".fcs
 saveRDS(unmixed_data,paste0("./rds/OLS_unmixed_beadandcell_wAF_",sample_name, ".rds"))
 ```
 
+### Cor matrix of your fluorophore signagtures
+
+```{r, fig.height=15, fig.width=10}
+cor_M <- cor(M)
+p <- corrplot(cor_M, method = "shade",tl.col = "black", type = c("low"), addCoef.col = "black")
+```
