@@ -5,7 +5,7 @@ Anything Yuchen's spectral flow analysis workflows. Including template scripts o
 I'm a PhD student in Immunology and HIV infection. I jump between long wet lab hours and long computer hours...
 
 ## Little Spec
-This repo is a workflow made by a wet-lab scientist for wet-lab scientists. From reference control to unmixing and high-parameter analysis of flow data. Other than the ridge regression unmixing, I didn't really invent new method here, more like collected the tools into a toolkit from the beginning to the end of flow analysis. The handmade math content in this repo is no more than basic linear algebra and regression techniques. 
+This repo is a workflow made by a wet-lab scientist for wet-lab scientists. From reference control to unmixing and high-parameter analysis of flow data. Other than the ridge regression unmixing, I didn't really try new method here, more like collected the tools into a toolkit from the beginning to the end of flow analysis. The handmade math content in this repo is no more than basic linear algebra and regression techniques. 
 
 Don't worry if that's causing mathphobia. As long as you get all elements ready and in the right formats, you can do these calculations following the instructions in the scripts!
 
@@ -14,9 +14,12 @@ Don't worry if that's causing mathphobia. As long as you get all elements ready 
 3. OLS spectral unmixing with AF extraction
 4. I'm working with colleagues from math school for other unmixing model or fluorophore signature evaluation metrics.
 5. Other unmixing methods: Weighted LS (Update 29/07/2026: the way I formatted the WLS might be incorrect in the current script. I will test the supposed way and update if correct), beta-testing NNLS (this only prevents -ve solutions but does not actually solve the unmixing issues). I'm working with colleagues from math school to see how we could improve things.
-6. EDA for full-stained raw and unmixed data to briefly see the noise distribution, observe per-channel residuals. (I'm working with the colleagues to develop evaluation metrics for models too)
-7.  Gating and visulisation of unmixed data
+6. EDA for full-stained raw and unmixed data to briefly see the noise distribution, observe per-channel residuals.
+7. Gating and visulisation of unmixed data
 8. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
+
+## What's next coming?
+We are aware that the noise from the detectors should be Poisson - i.e. higher variance when higher signal intensity. But how much of the residuals propagate from the fluorophore signature matrix, how much arises when unmixing the full-stained sample? And how to evaluate the performance of the unmixing models mathematically so we can improve it? That's what I'm working on with my colleagues atm.
 
 ## Get started
 You need to get a few things ready before you start using scripts in this repo:
