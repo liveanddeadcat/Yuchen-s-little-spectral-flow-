@@ -7,12 +7,10 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
 library(flowSpectrum)
 library(data.table)
 library(flowCore)
 library(matrixStats)
-library(Spectre)
 library(corrplot)
 set.seed(233)
 ```
@@ -21,11 +19,14 @@ set.seed(233)
 
 ```{r}
 getwd()
-cum <- read.FCS("./Colon500 UM CD14-_Full-stain_2025_12_23_14_24_41.fcs", transformation = "linearize-with-PnG-scaling")
-expr <- exprs(cum)
+fs <- read.FCS("./FS.fcs", transformation = "linearize-with-PnG-scaling")
+expr <- exprs(fs)
 colnames(expr)
+
+# Change the channel sequence ot this exact order if you ever export your file from flowjo
 aurora_channels <- c('UV1-A',  'UV2-A',  'UV3-A',  'UV4-A',  'UV5-A',  'UV6-A',  'UV7-A',  'UV8-A',  'UV9-A',  'UV10-A','UV11-A', 'UV12-A', 'UV13-A', 'UV14-A', 'UV15-A', 'UV16-A', 'V1-A',   'V2-A',  
 'V3-A',   'V4-A',   'V5-A',   'V6-A',   'V7-A',   'V8-A',   'V9-A',   'V10-A',  'V11-A',  'V12-A',  'V13-A',  'V14-A',  'V15-A',  'V16-A',  'B1-A',   'B2-A',   'B3-A',   'B4-A',  'B5-A',   'B6-A',   'B7-A',   'B8-A',   'B9-A',   'B10-A',  'B11-A',  'B12-A',  'B13-A',  'B14-A',  'YG1-A',  'YG2-A',  'YG3-A',  'YG4-A',  'YG5-A',  'YG6-A',  'YG7-A',  'YG8-A', 'YG9-A',  'YG10-A', 'R1-A',   'R2-A',   'R3-A',   'R4-A',   'R5-A',   'R6-A',   'R7-A',   'R8-A'  )
+
 # grab the fluorescence channels
 expr <- expr[,aurora_channels]
 dim(expr)
@@ -112,27 +113,28 @@ eda <- list(
   subsample = expr_sub,
   summary_statistics = df
 )
-saveRDS(eda, "./rds/YL17CUM_EDA.rds")
-eda<- readRDS("./rds/20260203_YL17CUM_EDA.rds")
+saveRDS(eda, "./rds/YL_EDA.rds")
+eda<- readRDS("./rds/20260203_YL_EDA.rds")
 ```
 
 ## Load and inspect the unmixed data
 
 ### Flruorophores abundances distribution, with AF extraction
 ```{r}
-ols_unmix_af<- readRDS("./rds/20260206_OLS_unmixed_CUM500 with AF.rds")
-unmixed_cum_af <- ols_unmix_af$unmixed_with_af[,8:29]
+ols_unmix_af<- readRDS("./rds/ols_unmixed_wAF.rds")
+unmixed <- ols_unmix_af$unmixed_with_af[,8:29] # ignore the FSCs, SSCs for now
 
-unmixed_waf_med <- colMedians(unmixed_cum_af)
-unmixed_waf_mean <- colMeans(unmixed_cum_af)
-unmixed_waf_sd <- colSds(unmixed_cum_af)
-unmixed_waf_var <- colVars(unmixed_cum_af)
+# Just do the calculations you want
+unmixed_med <- colMedians(unmixed)
+unmixed_mean <- colMeans(unmixed)
+unmixed_sd <- colSds(unmixed)
+unmixed_var <- colVars(unmixed)
 
-df2 = data.frame(marker_mean = unmixed_waf_mean,
-                marker_median = unmixed_waf_med,
-                marker_SD = unmixed_waf_sd,
-                marker_variance = unmixed_waf_var,
-                markers = names(unmixed_waf_mean))
+df2 = data.frame(marker_mean = unmixed_mean,
+                marker_median = unmixed_med,
+                marker_SD = unmixed_sd,
+                marker_variance = unmixed_var,
+                markers = names(unmixed_mean))
 
 # Plotting
 ggplot(df2, aes(x = marker_mean, y = marker_SD,colour = markers))+
@@ -159,62 +161,11 @@ corrplot(cor_fluo, method = "circle",tl.col = "white", type = c("low"))
 Unmixed data distribution
 
 ```{r}
-unmixed_cum_af %>% 
+unmixed %>% 
   ggplot(aes(x = unmixed_cum_af[,5]))+
   geom_density()
 ```
 Save things
 ```{r}
 saveRDS()
-```
-
-
-
-
-
-
-
-
-
-
-
-
-### Flruorophores abundances distribution, without AF extraction
-```{r}
-# Load data
-ols_unmix <- readRDS("./rds/20260202_OLS_unmixing.rds")
-unmixed_cum <- ols_unmix$Unmixed_fluo_channels
-unmixed_med <- colMedians(unmixed_cum)
-unmixed_mean <- colMeans(unmixed_cum)
-unmixed_sd <- colSds(unmixed_cum)
-unmixed_var <- colVars(unmixed_cum)
-
-
-df = data.frame(marker_mean = unmixed_mean,
-                marker_median = unmixed_med,
-                marker_SD = unmixed_sd,
-                markers_variance = unmixed_var,
-                markers = names(unmixed_mean))
-
-ggplot(df, aes(x = marker_mean, y = marker_SD))+
-  geom_point()+
-  geom_smooth(method = "lm", colour = "blue")+
-  theme_bw()
-
-ggplot(df, aes(x = marker_median, y = marker_SD))+
-  geom_point()+
-  geom_smooth(method = "lm", colour = "red")+
-  theme_bw()
-
-cor(df$marker_mean,df$marker_SD)
-cor(df$marker_med,df$marker_SD)
-cor(df$marker_mean,df$markers_variance)
-
-# Across fluorescence abundances
-cor_fluo <- cor(unmixed_cum)
-corrplot(cor_fluo, method = "circle",tl.col = "black", type = c("low"))
-
-# Distributions
-
-
 ```
