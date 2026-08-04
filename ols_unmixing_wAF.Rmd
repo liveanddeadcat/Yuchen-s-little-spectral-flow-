@@ -274,9 +274,21 @@ write.FCS(ff, filename = paste0("ols_unmixed_bead_and_cell_", sample_name, ".fcs
 saveRDS(unmixed_data,paste0("./rds/OLS_unmixed_beadandcell_wAF_",sample_name, ".rds"))
 ```
 
-### Cor matrix of your fluorophore signagtures
+### Correlation matrix and cosine similarity matrix of your fluorophore signagtures
 
 ```{r, fig.height=15, fig.width=10}
+# Pearson's cor
 cor_M <- cor(M)
 p <- corrplot(cor_M, method = "shade",tl.col = "black", type = c("low"), addCoef.col = "black")
+
+# cosine sim
+library(proxy)
+
+cos_M <- proxy::simil(M_t, method = "cosine")
+cos_M <- as.matrix(cos_M)
+colnames(cos_M)<- colnames(M)
+rownames(cos_M) <- colnames(M)
+diag(cos_M)<- 1
+p <- corrplot(cos_M, method = "shade",tl.col = "white", type = c("low"),  na.label = " ",cl.cex = 1.5,
+              na.label.col = "white")
 ```
