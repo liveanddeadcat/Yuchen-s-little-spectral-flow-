@@ -19,7 +19,7 @@ Don't worry if that's causing mathphobia. As long as you get all elements ready 
 8. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
 
 ## What's next coming?
-We are aware that the noise from the detectors should be Poisson - i.e. higher variance when higher signal intensity. But how much of the residuals propagate from the fluorophore signature matrix, how much arises when unmixing the full-stained sample? And how to evaluate the performance of the unmixing models mathematically so we can improve it? That's what I'm working on with my colleagues atm.
+We are aware that the noise from the detectors should have been Poisson - i.e. higher variance when higher signal intensity. But how much of the residuals propagate from the fluorophore signature matrix (the panel), and how much arises during unmixing the full-stained sample? And how to evaluate the performance of the unmixing models mathematically so we can improve it? That's what I'm working on with my colleagues atm.
 
 ## Get started
 You need to get a few things ready before you start using scripts in this repo:
