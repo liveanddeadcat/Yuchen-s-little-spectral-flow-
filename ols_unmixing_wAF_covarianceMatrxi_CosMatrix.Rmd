@@ -292,3 +292,9 @@ diag(cos_M)<- 1
 p <- corrplot(cos_M, method = "shade",tl.col = "white", type = c("low"),  na.label = " ",cl.cex = 1.5,
               na.label.col = "white")
 ```
+### Condition number of your panel
+This indicates how unstable the unmixing results might be due to small variance in the reference control panel.
+
+```{r}
+kappa(M)
+```
