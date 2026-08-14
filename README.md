@@ -1,5 +1,5 @@
 # Yuchen-s-little-spectral-flow
-Anything Yuchen's spectral flow analysis workflows. Including template scripts of comparing spectral profiles, spectral unmixing, statistics around evaluation of unmixing, downstream analysis: data integraion, statistics, clustering, data visualisation etc.
+Anything Yuchen's spectral flow analysis workflows. Including template scripts of comparing spectral profiles, spectral unmixing, statistics around evaluation of unmixing, gating in R, downstream analysis: data integraion, statistics, clustering, data visualisation etc.
 
 ## A bit about me
 I'm a PhD student in Immunology and HIV infection in Westmead Institute for Medical Research, NSW Australia. I jump between long wet lab hours and long computer hours...
