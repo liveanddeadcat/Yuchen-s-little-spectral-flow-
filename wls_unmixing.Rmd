@@ -1,7 +1,7 @@
 ---
-title: "Unmixing in R"
+title: "WLS Unmixing in R"
 author: "Yuchen Li"
-date: "2026-0818"
+date: "2026 Aug"
 output: 
   html_document:
     code_folding: "hide"
@@ -17,13 +17,11 @@ library(pheatmap)
 library(matrixStats)
 library(data.table)
 set.seed(233)
-# dir.create("./rds")
-# dir.create("./plots")
+dir.create("./rds")
+dir.create("./plots")
 ```
 
 ## Load controls
-
-## Yuchen: Bypassing the pre-set automatic gating functions in AutoSpectral and use pregated fcs files from SpectroFlo. To generate the ref control spectral profiles
 
 ### Load pre-gated fcs files for reference controls 
 
@@ -48,15 +46,13 @@ p1 <- lapply(seq(2,length(dat), by = 2), function(i){spectralplot(dat[[i]], norm
  names(p1) <- gsub("_pos.fcs", "",names(dat[seq(2,length(dat),2)]))
  print(as.matrix(names(p1)))
  
- 
  aurora_channels <- c('UV1-A',  'UV2-A',  'UV3-A',  'UV4-A',  'UV5-A',  'UV6-A',  'UV7-A',  'UV8-A',  'UV9-A',  'UV10-A','UV11-A', 'UV12-A', 'UV13-A', 'UV14-A', 'UV15-A', 'UV16-A', 'V1-A',   'V2-A',  
 'V3-A',   'V4-A',   'V5-A',   'V6-A',   'V7-A',   'V8-A',   'V9-A',   'V10-A',  'V11-A',  'V12-A',  'V13-A',  'V14-A',  'V15-A',  'V16-A',  'B1-A',   'B2-A',   'B3-A',   'B4-A',  'B5-A',   'B6-A',   'B7-A',   'B8-A',   'B9-A',   'B10-A',  'B11-A',  'B12-A',  'B13-A',  'B14-A',  'YG1-A',  'YG2-A',  'YG3-A',  'YG4-A',  'YG5-A',  'YG6-A',  'YG7-A',  'YG8-A', 'YG9-A',  'YG10-A', 'R1-A',   'R2-A',   'R3-A',   'R4-A',   'R5-A',   'R6-A',   'R7-A',   'R8-A'  )
 
-# Reorder the channels
+# Reorder the channels to above exact order if you gated ref controls in flowjo
 for (i in 1:length(p1)){
   p1[[i]] <- p1[[i]][match(aurora_channels, p1[[i]]$`rownames(df)`),]
 }
- 
  
  
 # add a sample column for plotting
@@ -71,31 +67,32 @@ print(cvars)
 df <- df <- dplyr::bind_rows(c(p1))
 ```
 
-# Generate spectral profiles
-
-```{r}
-# check the df structure is fine
-# str(df)
-# summary(df$medians.max.medians.)
-# table(df$sample)
-# table(df$`rownames(df)`)
-# table(df$medians.max.medians.)
-
-# clean up the sample names
-df$sample <- gsub(" ", "_", df$sample)
-
-markers <- unique(df$sample)
-```
-
 ### Add AF in 
 
 Import AF profile
 
 ```{r}
-af <- readRDS("./rds/unstained_lympho_spectrum.rds")
-af$sample <- "AF"
-# Add AF to the spectral profile data frame
-df <- rbind(df, af)
+dir <- "./af"
+files <- dir(dir, pattern = "fcs$", full.names=T)
+as.matrix(files)
+
+# read in fcs files
+dat <- lapply(files, read.FCS)
+
+# tidy up the file names as you wish, if you need to
+names(dat) <-gsub("./af/","",files)
+names(dat) <-gsub(".fcs.*","",names(dat))
+
+# Extract normalised spectra
+af <- lapply(1:length(dat), function(i){spectralplot(dat[[i]], normalize = TRUE)$data})
+names(af) <- names(dat)
+af[[1]]$sample <- "AF"
+af <- af[[1]]
+
+# attaching AF profile to the spectral profile data frame and list
+df <- rbind(df,af)
+
+p1$AF <- af
 ```
 
 
@@ -104,8 +101,16 @@ df <- rbind(df, af)
 Construct the spectral matrix M.
 
 ```{r}
-df <- df %>% pivot_wider(names_from = sample, values_from = medians.max.medians.)
-M <- as.matrix(df[,2:23])
+Mlist <- list()
+
+for (i in 1:length(table(df$sample))){
+    Mlist[[i]] <- as.matrix(p1[[i]]$medians.max.medians.)
+}
+
+spectra_matrix <- do.call(cbind, Mlist)
+rm(Mlist)
+colnames(spectra_matrix) <- names(p1)
+M <- spectra_matrix
 ```
 
 ## Construct the weight matrix by variance metrics, 1/CV(channels), and use the standard solution 20260818
@@ -125,24 +130,15 @@ M_t <- as.matrix(M_t)
 rownames(M_t)<- colnames(M)
 
 # weighted solution
-# the weighted M inverse matrix
+# the weighted M covariance inverse matrix
 wmtm_1 <- solve(M_t %*% W %*% M)
-
-
-# Transpose to make the cells on rows again to match the original data
-t_unmixed_matrix <- t(unmixed_matrix)
-colnames(t_unmixed_matrix) <- gsub("_","_unmixed_", colnames(t_unmixed_matrix))
-
-#Add these columns to the Time and FSC, SSC channels
-unmixed_data <- cbind(exprs(sample[,sample@parameters@data$name[!sample@parameters@data$name %in% df$`rownames(df)`]]),
-      t_unmixed_matrix)
 ```
 
 
 Load in raw sample data.
 
 ```{r}
-fs_path <- "D:/YL17_R unmixied/Colon500 UM CD14-_Full-stain_2025_12_23_14_24_41.fcs"
+fs_path <- "./path/to/FS.fcs"
 sample <- read.FCS(fs_path, transformation = "linearize-with-PnG-scaling")
 ```
 
@@ -184,8 +180,8 @@ Save the unmixing results.
 ```{r}
 # write the fcs file
 ff <- flowFrame(unmixed_data)
-sample_name <- "CLP500"
-write.FCS(ff, filename = paste0("20260818_wls_unmixed_byCV_", sample_name, ".fcs"))
+sample_name <- "name"
+write.FCS(ff, filename = paste0("wls_unmixedbyCV_", sample_name, ".fcs"))
 
 # Save the unmixing results
 wls <- list()
@@ -193,107 +189,6 @@ wls$CV_weights <- W
 wls$CV_weighted_covariance_inverse <- wmtm_1
 wls$unmixed_data_weighted_byCV <- unmixed_data
   
-saveRDS(wls,paste0("./rds/20260818_WLS_unmixed_",sample_name, ".rds"))
-
-```
-
-
-## Construct the weight matrix by variance metrics, 1/CV(channel), 20260427
-
-Load the previous data back in.
-
-```{r}
-wls <- readRDS("./rds/20260323_WLS_unmixed_CUM500.rds")
-M <- wls$Spectral_matrix
-```
-
-Calculate the Weights by 1/CV(M) then calculated Weighted M.
-
-```{r}
-cvs <- rowSds(M)/rowMeans(M)
-Weights <- 1/cvs
-W <- diag(Weights)
-
-# Apply weights
-WM <- W %*% M
-```
-Calculate pseudo-inverse of M
-
-```{r}
-# SVD for weighted M and calculating pseudoinverse of the weighted M
-svd_WM <- svd(WM)
-pseudo_inver_WM <- (svd_WM$v) %*% diag(svd_WM$d^(-1)) %*% t(svd_WM$u)
-rownames(pseudo_inver_WM) <- colnames(wls$Spectral_matrix)
-
-```
-
-Visualise the unmixing matrix.
-
-```{r}
-sample_name <- "CUM500"
-aurora_channels <- readRDS("./rds/aurora_channels.rds")
-colnames(pseudo_inver_WM)<- aurora_channels
-
-pheatmap(pseudo_inver_WM, 
-         main = "Unmixing matrix by WLS",
-         color = colorRampPalette(c("blue", "white", "red"))(100),
-         cluster_rows = FALSE,
-         cluster_cols = FALSE,
-         angle_col = c("45"),
-         filename = paste0("./plots/ChcvWLS_unmixing_matrix_", sample_name, ".png"),
-       #  cellwidth = 5.5,
-        width = 12,
-        height = 4)
-```
-
-
-Load in raw sample data.
-
-```{r}
-fs_path <- "Colon500 UM CD14-_Full-stain_2025_12_23_14_24_41.fcs"
-sample <- read.FCS(fs_path, transformation = "linearize-with-PnG-scaling")
-```
-
-```{r}
-# take only the fluorescence channels'values to go into the unmixing
-sample_fluo<-exprs(sample[,sample@parameters@data$name[sample@parameters@data$name %in% aurora_channels]])
-dim(sample_fluo)
-colnames(sample_fluo) <- NULL
-
-# transpose it into the cells as columns vs channels as rows format
-sample_fluo<- as.data.table(sample_fluo)
-sample_fluo<- transpose(sample_fluo)
-sample_fluo<-as.matrix(sample_fluo)
-
-# Applying unmixing matrix
-unmixed_matrix <- pseudo_inver_WM %*% sample_fluo
-
-# Transpose to make the cells on rows again to match the original data
-unmixed_matrix <- as.data.table(unmixed_matrix)
-unmixed_matrix <- transpose(unmixed_matrix)
-t_unmixed_matrix <- as.matrix(unmixed_matrix)
-rm(unmixed_matrix, sample_fluo)
-
-colnames(t_unmixed_matrix) <- gsub("_","_unmixed_", rownames(pseudo_inver_WM))
-
-#Add these columns to the Time and FSC, SSC channels
-#exprs(sample[,sample@parameters@data$name[!sample@parameters@data$name %in% df$`rownames(df)`]])
-unmixed_data <- cbind(exprs(sample[,sample@parameters@data$name[!sample@parameters@data$name %in% aurora_channels]]),
-      t_unmixed_matrix)
-```
-Save the unmixing results.
-
-```{r}
-# write the fcs file
-ff <- flowFrame(unmixed_data)
-write.FCS(ff, filename = paste0("2026427_wls_unmixed_bychannelCV_", sample_name, ".fcs"))
-
-# Save the unmixing results
-wls$ChnlCV_weights <- W
-wls$ChnlCV_weighted_spectral_matrix <- WM
-wls$weighted_unmixing_matrix_bychanlCV <- pseudo_inver_WM
-wls$unmixed_data_weighted_bychanlCV <- unmixed_data
-  
-saveRDS(wls,paste0("./rds/20260427_WLS_unmixed_",sample_name, ".rds"))
+saveRDS(wls,paste0("./rds/WLSbyCV_unmixed_",sample_name, ".rds"))
 
 ```
