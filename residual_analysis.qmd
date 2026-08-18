@@ -1,0 +1,269 @@
+---
+title: "Residual analysis"
+format: html
+editor: visual
+---
+
+```{r, include = FALSE}
+library(tidyverse)
+library(matrixStats)
+library(data.table)
+library(flowCore)
+library(flowSpectrum)
+ggplot2::theme_set(theme_bw())
+set.seed(233)
+```
+
+Author: Yuchen Li Version: 2026 Apr
+
+## Residual analysis
+
+### Calculate residuals
+
+Model residuals are calculated by predicted total signals reconstructed by Ma - observed signals. M is the spectral profile matrix. a is the 'abundances' i.e. unmixed data/coefficients from the linear system. The below codes assumes that you have done OLS unmixing and saved the OLS unmixed results. If you don't have an object saved, please run through the unmixing script first.
+
+```{r}
+# load the object
+unmix <- readRDS("./rds/20260505_OLS_unmixed_beadandcell_wAF_CUM500.rds") 
+
+# take the unmixed fluorescence channel data, transpose it to fluorophores as rows
+a <- unmix[,8:29]
+a <- as.data.table(a)
+a <- transpose(a)
+a <- as.matrix(a)
+
+# Retrive the estimated total signal from Ma 
+
+# retrieve M
+file.dir <-"./ref controls"
+files <- dir(file.dir, pattern = "fcs$", full.names=T)
+as.matrix(files)
+
+# read in fcs files
+dat <- lapply(files, read.FCS)
+names(dat) <-gsub("./ref controls/","",files)
+as.matrix(names(dat))
+p1 <- lapply(seq(2,length(dat), by = 2), function(i){spectralplot(dat[[i]], normalize = TRUE, guessPop = TRUE, unstained = dat[[i-1]])$data})
+
+#Name the list of new dfs
+ names(p1) <- gsub("./ref control/", "",names(dat[seq(2,length(dat),2)]))
+ names(p1) <- gsub("_pos.fcs", "",names(dat[seq(2,length(dat),2)]))
+ print(as.matrix(names(p1)))
+ 
+aurora_channels <- c('UV1-A',  'UV2-A',  'UV3-A',  'UV4-A',  'UV5-A',  'UV6-A',  'UV7-A',  'UV8-A',  'UV9-A',  'UV10-A','UV11-A', 'UV12-A', 'UV13-A', 'UV14-A', 'UV15-A', 'UV16-A', 'V1-A',   'V2-A',  
+'V3-A',   'V4-A',   'V5-A',   'V6-A',   'V7-A',   'V8-A',   'V9-A',   'V10-A',  'V11-A',  'V12-A',  'V13-A',  'V14-A',  'V15-A',  'V16-A',  'B1-A',   'B2-A',   'B3-A',   'B4-A',  'B5-A',   'B6-A',   'B7-A',   'B8-A',   'B9-A',   'B10-A',  'B11-A',  'B12-A',  'B13-A',  'B14-A',  'YG1-A',  'YG2-A',  'YG3-A',  'YG4-A',  'YG5-A',  'YG6-A',  'YG7-A',  'YG8-A', 'YG9-A',  'YG10-A', 'R1-A',   'R2-A',   'R3-A',   'R4-A',   'R5-A',   'R6-A',   'R7-A',   'R8-A'  )
+
+# Reorder the channels
+for (i in 1:length(p1)){
+  p1[[i]] <- p1[[i]][match(aurora_channels, p1[[i]]$`rownames(df)`),]
+}
+ 
+# add a sample column for plotting
+  for(i in 1:length(p1)){p1[[i]]$sample = names(p1)[i]}
+ 
+ cvars<-gsub("\ ","",apply(expand.grid(c("UV", 'V', 'B', "YG", "R"),1:16,"-A") %>% 
+                            mutate(Var1=factor(Var1,levels=unique(Var1))) %>% 
+                            arrange(Var1,Var2),1,function(X) paste0(X,collapse="")))
+
+# combine the df into a big df
+df <- df <- dplyr::bind_rows(c(p1))
+
+## Import AF profile
+af <- readRDS("./rds/unstained_lympho_spectrum.rds")
+af$sample <- "AF"
+# attaching AF profile to the spectral profile data frame and list
+df <- rbind(df,af)
+
+p1$AF <- af
+
+# construct the spectra matrix
+Mlist <- list()
+
+for (i in 1:length(table(df$sample))){
+    Mlist[[i]] <- as.matrix(p1[[i]]$medians.max.medians.)
+}
+
+spectra_matrix <- do.call(cbind, Mlist)
+rm(Mlist)
+
+colnames(spectra_matrix) <- names(p1)
+
+m <- spectra_matrix 
+r_hat <- m%*%a  
+
+# retrieve the r_fluo
+fs_path <- "./Colon500 UM CD14-_Full-stain_2025_12_23_14_24_41.fcs"
+sample <- read.FCS(fs_path, transformation = "linearize-with-PnG-scaling")
+sample_fluo<-exprs(sample[,sample@parameters@data$name[sample@parameters@data$name %in% df$`rownames(df)`]])
+dim(sample_fluo)
+
+colnames(sample_fluo) <- NULL
+
+# transpose it into the cells as columns vs channels as rows format
+sample_fluo<- as.data.table(sample_fluo)
+sample_fluo<- transpose(sample_fluo)
+sample_fluo <- as.matrix(sample_fluo)
+
+r_fluo <- sample_fluo
+
+# Calculate residuals 
+res <- r_fluo - r_hat 
+dim(res) #quick check
+```
+
+In R, we can also calculate the classical model diagnostics than using software. For what it's worth: I calculated the residuals from unmixing without AF extraction, and found that the largest errors line perfectly with AF hotspots. The unmixing was largely improved by adding the unstained sample and the AF parameter, even though I'm not studying a typical "AF high" cell type.
+
+Below are a few examples for quick residual analysis.
+
+### Quickly plot the residuals
+
+This should be roughly approaching normal, as we have millions of events with potential Poisson noise (although not completely Poisson).
+
+```{r, fig.width=15, fig.height=5}
+# density plots with the Aurora channel order
+res <- t(res) # columns as channels to plot
+colnames(res)<-aurora_channels
+res %>% 
+  as.data.frame() %>% 
+  pivot_longer(cols = colnames(res), names_to = "channel", values_to = "values") %>% 
+ggplot(aes(x = values))+
+  geom_density(linewidth = 1, fill = "cornflowerblue")+
+  scale_x_continuous(limits = c(-1e+05, 1e+05))+
+  theme_bw()
+```
+
+### Scale-location plot
+
+```{r}
+# transpose res back and calculate standardized residuals
+res <- as.data.table(res)
+res <- transpose(res)
+res<- as.matrix(res)
+standard_res <- sqrt(abs(res/rowSds(res)))
+
+# Generate the plot
+scale_loc <- data.frame(
+  channels = aurora_channels,
+  standard_residuals = rowMeans(standard_res),
+  fitted_values = rowMeans(r_hat)
+)
+
+ggplot(scale_loc, aes(x = fitted_values, y = standard_residuals))+
+geom_point()+
+  theme_bw()+
+  scale_y_continuous(limits = c(0,1.8))
+```
+
+Median channel-wise residual plot.
+
+```{r, fig.width = 9, fig.height = 5}
+# calculate median residuals
+colnames(res) <- aurora_channels
+df_med_res <- data.frame(
+  channels = colnames(res),
+  values  = colMedians(res)
+)
+
+#residual plot
+ggplot(df_med_res, aes(x = factor(channels, levels = aurora_channels), y = values))+
+  geom_point()+
+  theme_bw()+
+  geom_hline(yintercept = 0)+
+  theme(axis.text.x =element_text(angle = 90,face = "bold"),
+        panel.border = element_rect(linewidth = 1))
+#ggsave("./plots/residual analysis/xx.png",width = 18, height = 10, units = c("cm"))
+```
+
+Scaled signature.
+
+```{r}
+#0-1 scaling 
+res_scale <- (df_med_res$values-min(df_med_res$values))/(max(df_med_res$values)-min(df_med_res$values))  
+res_scale_df <- data.frame(   values = res_scale,   detectors = 1:64 )  
+#scaled plot 
+ggplot(res_scale_df, aes(x = detectors, y = values))+  
+  geom_line(linewidth = 0.5)+   
+  theme_bw()+   
+  geom_hline(yintercept = 0)+   
+  theme(axis.text.x =element_text(angle = 0,face = "bold"),         
+        panel.border = element_rect(linewidth = 1))+   
+  xlab("Detectors")+   
+  ylab("Scaled residual signature")
+```
+
+```{r}
+# mean residuals
+colnames(res) <- aurora_channels
+df_mu_res <- data.frame(
+  channels = colnames(res),
+  values  = colMeans(res)
+)
+
+#residual plot
+ggplot(df_mu_res, aes(x = factor(channels, levels = aurora_channels), y = values))+
+  geom_point()+
+  theme_bw()+
+  geom_hline(yintercept = 0)+
+  theme(axis.text.x =element_text(angle = 90,face = "bold"),
+        panel.border = element_rect(linewidth = 1))
+
+# scaled signatures
+mu_res_scale <- (df_mu_res$values-min(df_mu_res$values))/(max(df_mu_res$values)-min(df_mu_res$values))  
+mu_res_scale_df <- data.frame(   values = mu_res_scale,   detectors = 1:64 )  
+#scaled plot 
+ggplot(mu_res_scale_df, aes(x = detectors, y = values))+  
+  geom_line(linewidth = 0.5)+   
+  theme_bw()+   
+  geom_hline(yintercept = 0)+   
+  theme(axis.text.x =element_text(angle = 0,face = "bold"),         
+        panel.border = element_rect(linewidth = 1))+   
+  xlab("Detectors")+   
+  ylab("Scaled residual signature")
+
+```
+
+Calculate expected noise floor at the intensity in that channel and plotting
+
+```{r}
+mu_detector <- rowMeans(r_fluo) # when k=1
+floor <- sqrt(mu_detector) # as sd^2 ~= k mu(detector)
+df_floor <- data.frame(
+  channels = colnames(res),
+  values  = floor
+)
+
+ggplot(df_floor, aes(x = factor(channels, levels = aurora_channels), y = values))+
+  geom_point()+
+  theme_bw()+
+  geom_hline(yintercept = 0)+
+  theme(axis.text.x =element_text(angle = 90,face = "bold"),
+        panel.border = element_rect(linewidth = 1))
+
+```
+
+Scaled signature.
+
+```{r}
+#0-1 scaling 
+sd_scale <- (df_floor$values-min(df_floor$values))/(max(df_floor$values)-min(df_floor$values))  
+
+sd_scale_df <- data.frame(values = res_scale,detectors = 1:64)  
+#scaled plot 
+ggplot(sd_scale_df, aes(x = detectors, y = values))+   
+  geom_line(linewidth = 0.5)+   
+  theme_bw()+   
+  geom_hline(yintercept = 0)+   
+  theme(axis.text.x =element_text(angle = 0,face = "bold"),         
+        panel.border = element_rect(linewidth = 1))+   
+  xlab("Detectors")+   
+  ylab("Scaled SNR signature")
+```
+
+## What's next
+
+We are aware that the noise from the detectors should be Poisson - i.e. higher variance when higher signal intensity. But how much of the residuals propagate from the fluorophore signature matrix, how much arises when unmixing the full-stained sample? And how to evaluate the performance of the unmixing models mathematically so we can improve it? That's what I'm working on atm.
+
+```{r}
+# For a quick record
+sessionInfo()
+```
