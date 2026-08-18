@@ -13,7 +13,7 @@ Don't worry if that's causing mathphobia. As long as you get all elements ready 
 2. 2 essential matrices to calculate to indicate if there's any potential dye interaction in your fluorophore signatures: covariance matrix and cosine similarity matrix
 3. OLS spectral unmixing with AF extraction
 4. I'm working with colleagues from math school for other unmixing model or fluorophore signature evaluation metrics.
-5. Other unmixing methods: Weighted LS (Update 29/07/2026: the way I formatted the WLS might be incorrect in the current script. I will test the supposed way and update if correct), beta-testing NNLS (this only prevents -ve solutions but does not actually solve the unmixing issues). I'm working with colleagues from math school to see how we could improve things.
+5. Other unmixing methods: Weighted LS (formatted by 1/coeff of var), beta-testing NNLS (this only prevents -ve solutions but does not actually solve the unmixing issues). I'm working with colleagues from math school to see how we could improve things.
 6. EDA for full-stained raw and unmixed data to briefly see the noise distribution, observe per-channel residuals.
 7. Gating and visulisation of unmixed data
 8. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
