@@ -261,7 +261,7 @@ Scaled signature.
 #0-1 scaling 
 sd_scale <- (df_floor$values-min(df_floor$values))/(max(df_floor$values)-min(df_floor$values))  
 
-sd_scale_df <- data.frame(values = res_scale,detectors = 1:64)  
+sd_scale_df <- data.frame(values = sd_scale,detectors = 1:64)  
 #scaled plot 
 ggplot(sd_scale_df, aes(x = detectors, y = values))+   
   geom_line(linewidth = 0.5)+   
