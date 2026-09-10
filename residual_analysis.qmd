@@ -24,7 +24,7 @@ Model residuals are calculated by observed raw signals-Ma. M is the spectral pro
 
 ```{r}
 # load the object
-unmix <- readRDS("./Raw/TCF1 AF488/rds/OLS_unmixed_20260910.rds") 
+unmix <- readRDS("./OLS_unmixed_20260910.rds") 
 
 # take the unmixed fluorescence channel data, transpose it to fluorophores as rows
 
@@ -70,7 +70,7 @@ for (i in 1:length(p1)){
 df <- df <- dplyr::bind_rows(c(p1))
 
 ## Import AF profile
-dir <- "./Raw/TCF1 AF488/af"
+dir <- "./af"
 files <- dir(dir, pattern = "fcs$", full.names=T)
 as.matrix(files)
 
@@ -107,7 +107,7 @@ m <- spectra_matrix
 r_hat <- m%*%a  
 
 # retrieve the raw observed signals, r_fluo
-fs_path <- "./Raw/TCF1 AF488/TCF1 AF488_0_1_2026_09_02_14_33_52.fcs"
+fs_path <- "./FS.fcs"
 sample <- read.FCS(fs_path, transformation = "linearize-with-PnG-scaling")
 sample_fluo<-exprs(sample[,sample@parameters@data$name[sample@parameters@data$name %in% df$`rownames(df)`]])
 dim(sample_fluo)
@@ -125,9 +125,9 @@ res <- r_fluo - r_hat
 dim(res) #quick check
 ```
 
-In R, we can also calculate the classical model diagnostics than using software. For what it's worth: I calculated the residuals from unmixing without AF extraction, and found that the largest errors line perfectly with AF hotspots. The unmixing was largely improved by adding the unstained sample and the AF parameter, even though I'm not studying a typical "AF high" cell type. Furthermore, it helps identify the potential sources of your unmixing model errors, thus suggesting possible solution.
+In R, we can also calculate the classical model diagnostics than using software. For what it's worth: I calculated the residuals from unmixing without AF extraction, and found that the largest errors line perfectly with AF hotspots. The unmixing was largely improved by adding the unstained sample and the AF parameter, even though I'm not studying a typical "AF high" cell type. 
 
-In a case that the signature of Possion noise aligns well with model residuals, weighted least-squares could be very useful.
+Furthermore, it helps identify the potential sources of your unmixing model errors, thus suggesting possible solution. In a case that the signature of Possion noise aligns well with model residuals, weighted least-squares could be very useful.
 
 Below are a few examples for quick residual analysis.
 
