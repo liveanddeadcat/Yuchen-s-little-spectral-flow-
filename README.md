@@ -10,17 +10,17 @@ This repo is a workflow made by a wet-lab scientist for wet-lab scientists. From
 Don't worry if that's causing mathphobia. As long as you get all elements ready and in the right formats, you can do these calculations following the instructions in the scripts!
 
 1. Gate reference control populations you want. Compare and visualise the fluorophore signatures extracted from your reference controls
-2. 2 essential matrices to calculate to indicate if there's any potential dye interaction in your fluorophore signatures: covariance matrix and cosine similarity matrix
+2. 2 essential matrices and 1 number to calculate to indicate if there's any potential dye interaction in your fluorophore signatures: covariance matrix and cosine similarity matrix, condition number of signature matrix
 3. OLS spectral unmixing with AF extraction
-4. I'm working with colleagues from math school for other unmixing model or fluorophore signature evaluation metrics.
-5. Other unmixing methods: Weighted LS (formatted by 1/coeff of var), beta-testing NNLS (this only prevents -ve solutions but does not actually solve the unmixing issues). I'm working with colleagues from math school to see how we could improve things.
-6. EDA for full-stained raw and unmixed data to briefly see the noise distribution, observe per-channel residuals.
-7. Gating and visulisation of unmixed data
-8. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
+4. Weighted LS (formatted by 1/coeff of variance or MFI)
+5. Fluorophore signature evaluation metrics.
+6. Other unmixing methods: beta-testing NNLS (this only prevents -ve solutions but does not actually solve the unmixing issues). I'm working with colleagues from math school to see how we could improve things.
+7. EDA for full-stained raw and unmixed data to briefly see the noise distribution, observe per-channel residuals.
+8. Gating and visulisation of unmixed data
+9. Downstream analysis on unmixed data: data transformation, feature discovery, integration, clustering.
 
-## 20260818 update:
-- Updated the residual analysis workflow to include theorectical shot noise vs residuals
-- Updated the WLS unmixing script
+## 20260910 update:
+- Updated the residual analysis workflow to be more succinct and fixed errors in it.
 
 ## What's next coming?
 We are aware that the noise from the detectors should have been Poisson - i.e. higher variance when higher signal intensity. But how much of the residuals propagate from the fluorophore signature matrix (the panel), and how much arises during unmixing the full-stained sample? And how to evaluate the performance of the unmixing models mathematically so we can improve it? That's what I'm working on with my colleagues atm.
