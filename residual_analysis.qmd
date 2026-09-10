@@ -24,19 +24,19 @@ Model residuals are calculated by observed raw signals-Ma. M is the spectral pro
 
 ```{r}
 # load the object
-unmix <- readRDS("./Raw/TCF1 AF488/rds/OLS_unmixed_20260910.rds") 
+unmix <- readRDS("./rds/OLS_unmixed.rds") 
 
 # take the unmixed fluorescence channel data, transpose it to fluorophores as rows
 
 a <- as.data.table(unmix[[1]])
-a <- a[,5:10]
+#a <- a[,channel number]
 a <- transpose(a)
 a <- as.matrix(a)
 
 # Retrive the estimated total signal from Ma 
 
 # retrieve M from the ref controls
-file.dir <-"./Raw/TCF1 AF488/ref controls"
+file.dir <-"./ref controls"
 files <- dir(file.dir, pattern = "fcs$", full.names=T)
 as.matrix(files)
 
@@ -70,7 +70,7 @@ for (i in 1:length(p1)){
 df <- df <- dplyr::bind_rows(c(p1))
 
 ## Import AF profile
-dir <- "./Raw/TCF1 AF488/af"
+dir <- "./af"
 files <- dir(dir, pattern = "fcs$", full.names=T)
 as.matrix(files)
 
@@ -107,7 +107,7 @@ m <- spectra_matrix
 r_hat <- m%*%a  
 
 # retrieve the raw observed signals, r_fluo
-fs_path <- "./Raw/TCF1 AF488/TCF1 AF488_0_1_2026_09_02_14_33_52.fcs"
+fs_path <- "./Raw/fs.fcs"
 sample <- read.FCS(fs_path, transformation = "linearize-with-PnG-scaling")
 sample_fluo<-exprs(sample[,sample@parameters@data$name[sample@parameters@data$name %in% df$`rownames(df)`]])
 dim(sample_fluo)
@@ -297,7 +297,7 @@ ggplot(sd_scale_df, aes(x = detectors, y = values))+
 ## Load in the detector voltage data
 
 ```{r}
-vol <- read.csv("./unmixed_20260910/aurora voltage gains.csv")
+vol <- read.csv("./aurora voltage gains.csv")
 vol$channel <- paste0(vol$channel, "-A")
 table(vol$channel)
 ```
