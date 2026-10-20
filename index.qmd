@@ -1,0 +1,14 @@
+---
+title: "Yuchen's Little Spectral Flow Cytometry Analysis Workflows"
+author:
+  - name: Yuchen Li
+    orcid: 0000-0000-0000-0000
+format: html
+---
+
+This is the Quarto Website home page placeholder. Until it gets written out, here is the mandatory cat tax. 
+
+![](images/Alana.jpg)
+
+Best-
+David

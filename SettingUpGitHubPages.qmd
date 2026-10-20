@@ -1,0 +1,36 @@
+---
+title: "Setting Up GitHub pages"
+author:
+  - name: Yuchen Li
+    orcid: 0000-0000-0000-0000
+  - name: David Rach
+    orcid: 0000-0000-0000-0000
+format: html
+toc: true
+---
+
+If you want to share the website version on GitHub pages, there are a couple additional steps for setup after addition of the index.qmd and _quarto.yml files. First off, render the website via your terminal with the following
+
+```{r}
+#| eval: FALSE
+
+# In your terminal when at the working directory level, run 
+
+quarto render
+```
+
+Once this is accomplished, add, commit and push your changes back to GitHub. 
+
+From there, navigate to Settings
+
+![](images/Settings.png)
+
+Select Pages
+
+![](images/Pages.png)
+
+Then select deploy from Branch, then the appropiate branch and docs folder. 
+
+![](images/BranchDocs.png)
+
+At which point you should be set. 

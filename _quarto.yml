@@ -1,0 +1,46 @@
+project:
+  type: website
+  output-dir: docs
+  render: 
+    - index.qmd
+    - SettingUpGitHubPages.qmd
+    - ReproducibleExampleSetup.qmd
+    - GatingExampleSetup.qmd
+    - wls_unmixing.qmd
+execute:
+  freeze: auto
+website:
+  announcement: 
+    icon: info-circle
+    dismissable: true
+    content: "Nice work Yuchen! Had extra time, so here is a Quarto website framework for you"
+    type: info
+    position: below-navbar 
+  page-navigation: true 
+  title: "Yuchen's Little Spectral Flow"
+  navbar:
+    logo: images/hex.jpg
+    background: white
+    left:
+      - text: "About"
+        href: index.qmd
+      - text: "Scripts"
+        menu:
+        - text: "Reproducible Example Setup"
+          href: ReproducibleExampleSetup.qmd
+        - text: "Gating Example Setup"
+          href: GatingExampleSetup.qmd
+        - text: "WLS Unmixing"
+          href: wls_unmixing.qmd
+    right:
+    - icon: github
+      href: https://github.com/liveanddeadcat/Yuchen-s-little-spectral-flow-
+      aria-label: GitHub
+  page-footer: 
+   left: Made with [Quarto](https://quarto.org/)
+   right: |
+    ![AGPL-3.0](/images/AGPL3.png)
+format:
+  html:
+    css: styles.css
+

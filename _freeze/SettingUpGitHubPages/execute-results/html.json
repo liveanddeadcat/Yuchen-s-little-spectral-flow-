@@ -1,0 +1,15 @@
+{
+  "hash": "08e875ea504620da3336bd31a32fe072",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Setting Up GitHub pages\"\nauthor:\n  - name: Yuchen Li\n    orcid: 0000-0000-0000-0000\n  - name: David Rach\n    orcid: 0000-0000-0000-0000\nformat: html\ntoc: true\n---\n\nIf you want to share the website version on GitHub pages, there are a couple additional steps for setup after addition of the index.qmd and _quarto.yml files. First off, render the website via your terminal with the following\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# In your terminal when at the working directory level, run \n\nquarto render\n```\n:::\n\n\nOnce this is accomplished, add, commit and push your changes back to GitHub. \n\nFrom there, navigate to Settings\n\n![](images/Settings.png)\n\nSelect Pages\n\n![](images/Pages.png)\n\nThen select deploy from Branch, then the appropiate branch and docs folder. \n\n![](images/BranchDocs.png)\n\nAt which point you should be set. \n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
