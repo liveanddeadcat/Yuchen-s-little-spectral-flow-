@@ -7,13 +7,14 @@ project:
     - ReproducibleExampleSetup.qmd
     - GatingExampleSetup.qmd
     - wls_unmixing.qmd
+    - spectral_profile_comparisor.qmd
 execute:
   freeze: auto
 website:
   announcement: 
     icon: info-circle
     dismissable: true
-    content: "Nice work Yuchen! Had extra time, so here is a Quarto website framework for you"
+    content: "Thanks to David Rach for helping with the Quarto website framework!"
     type: info
     position: below-navbar 
   page-navigation: true 
@@ -32,6 +33,8 @@ website:
           href: GatingExampleSetup.qmd
         - text: "WLS Unmixing"
           href: wls_unmixing.qmd
+        - text: "Compare spectral signatures between bead vs cell reference controls"
+          href: spectral_profile_comparisor.qmd
     right:
     - icon: github
       href: https://github.com/liveanddeadcat/Yuchen-s-little-spectral-flow-

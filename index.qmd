@@ -2,7 +2,7 @@
 title: "Yuchen's Little Spectral Flow Cytometry Analysis Workflows"
 author:
   - name: Yuchen Li
-    orcid: 0000-0000-0000-0000
+    orcid: 0009-0008-3882-9689
 format: html
 ---
 
