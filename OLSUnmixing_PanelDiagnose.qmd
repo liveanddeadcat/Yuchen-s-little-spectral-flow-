@@ -1,0 +1,63 @@
+---
+title: "OLS unmixing"
+format: html
+editor: visual
+author: 
+  "Yuchen Li"
+toc: TRUE
+---
+
+This is an example script for a standard OLS spectral unmixing using my LilSpecUnmixR pilot package. It needs you to pregate your reference controls and export as positive and negative fcs files, as well as the unstained fcs file stored in ./af.
+
+Alternatively, if you followed David's setup scripts, you could use the .Rmd file in this repository "ols_unmixing_wAF_covarianceMatrxi_CosMatrix" and write it in a way that fits with the reference control setup. I will make a function that is compatible with David's setup too shortly.
+
+#### Load packages first
+
+```{r setup, include=TRUE}
+library(flowCore)
+library(ggplot2)
+library(tidyr)
+library(purrr)
+library(dplyr)
+library(flowSpectrum)
+library(pheatmap)
+
+  if (!requireNamespace("LilSpecUnmixR", quietly = TRUE)) {
+    install.packages("./LilSpecUnmixR_0.0.0.9000.tar.gz", dependencies = TRUE, type = "source", repos = NULL)}
+library(LilSpecUnmixR)
+
+set.seed(233)
+```
+
+#### Load reference controls
+
+```{r, message=FALSE,warning=FALSE}
+refs <- load_reference(ref_dir = "./refs_yl", af_dir = "./af_yl", dir_name_replace = "./refs_yl/", change_order=TRUE)
+
+```
+
+#### Build the spectral signature matrix
+
+```{r, message=FALSE,warning=FALSE}
+M <- M_generate(df=refs[[1]],refs = refs[[2]])
+```
+
+#### Inspect the cosine similarity of your fluorophore signatures and the covariance matrix.
+
+These will also be saved as plots in the directory "./plots".
+
+```{r, message=FALSE,warning=FALSE}
+panel_diagnose(M=M)
+```
+
+#### Unmixing
+
+```{r, message=FALSE,warning=FALSE}
+unmixed <- unmix_OLS_list(M=M, fs_raw_dir="./sample_yl")
+```
+
+#### Write fcs files
+
+```{r}
+fcs_write_save_list(unmixed_data_list = unmixed, rds_name="unmixed_0-1uL", model = "OLS")
+```

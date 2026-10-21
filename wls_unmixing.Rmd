@@ -39,7 +39,7 @@ as.matrix(names(dat))
 ## Generate the data frame of reference control spectral profiles
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
-p1 <- lapply(seq(2,length(dat), by = 2), function(i){spectralplot(dat[[i]], normalize = TRUE, guessPop = TRUE, unstained = dat[[i-1]])$data})
+p1 <- lapply(seq(2,length(dat),2), function(i){spectralplot(dat[[i]], normalize = TRUE, guessPop = TRUE, unstained = dat[[i-1]])$data})
 
 #Name the list of new dfs
  names(p1) <- gsub("./ref control/", "",names(dat[seq(2,length(dat),2)]))

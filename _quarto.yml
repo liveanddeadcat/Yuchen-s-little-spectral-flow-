@@ -8,6 +8,7 @@ project:
     - GatingExampleSetup.qmd
     - wls_unmixing.qmd
     - spectral_profile_comparisor.qmd
+    - OLSUnmixing_PanelDiagnose.qmd
 execute:
   freeze: auto
 website:
@@ -31,6 +32,8 @@ website:
           href: ReproducibleExampleSetup.qmd
         - text: "Gating Example Setup"
           href: GatingExampleSetup.qmd
+        - text: "OLS Unmixing"
+          href: OLSUnmixing_PanelDiagnose.qmd
         - text: "WLS Unmixing"
           href: wls_unmixing.qmd
         - text: "Compare spectral signatures between bead vs cell reference controls"

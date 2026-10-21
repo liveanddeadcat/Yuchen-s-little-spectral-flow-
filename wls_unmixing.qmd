@@ -51,11 +51,11 @@ as.matrix(names(dat))
 #| warning: FALSE
 #| echo: FALSE
 
-p1 <- lapply(seq(2,length(dat), by = 2), function(i){spectralplot(dat[[i]], normalize = TRUE, guessPop = TRUE, unstained = dat[[i-1]])$data})
+p1 <- lapply(seq(1,length(dat)), function(i){spectralplot(dat[[i]], normalize = TRUE, guessPop = FALSE)$data})
 
 #Name the list of new dfs
- names(p1) <- gsub("./ref control/", "",names(dat[seq(2,length(dat),2)]))
- names(p1) <- gsub("_pos.fcs", "",names(dat[seq(2,length(dat),2)]))
+ names(p1) <- gsub("./ref control/", "",names(dat))
+ names(p1) <- gsub("_pos.fcs", "",names(dat))
  print(as.matrix(names(p1)))
  
  aurora_channels <- c('UV1-A',  'UV2-A',  'UV3-A',  'UV4-A',  'UV5-A',  'UV6-A',  'UV7-A',  'UV8-A',  'UV9-A',  'UV10-A','UV11-A', 'UV12-A', 'UV13-A', 'UV14-A', 'UV15-A', 'UV16-A', 'V1-A',   'V2-A',  
@@ -66,14 +66,12 @@ for (i in 1:length(p1)){
   p1[[i]] <- p1[[i]][match(aurora_channels, p1[[i]]$`rownames(df)`),]
 }
  
- 
 # add a sample column for plotting
   for(i in 1:length(p1)){p1[[i]]$sample = names(p1)[i]}
  
  cvars<-gsub("\ ","",apply(expand.grid(c("UV", 'V', 'B', "YG", "R"),1:16,"-A") %>% 
                             mutate(Var1=factor(Var1,levels=unique(Var1))) %>% 
                             arrange(Var1,Var2),1,function(X) paste0(X,collapse="")))
-print(cvars)
 
 # combine the df into a big df
 df <- df <- dplyr::bind_rows(c(p1))
