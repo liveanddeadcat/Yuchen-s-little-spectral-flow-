@@ -42,6 +42,10 @@ as.matrix(files)
 dat <- lapply(files, read.FCS)
 names(dat) <-gsub("./ref controls/","",files)
 as.matrix(names(dat))
+
+# Load the universal unstained file
+uni_neg <- read.FCS("./af/Unstained.fcs")
+
 ```
 
 ## Generate the data frame of reference control spectral profiles
@@ -51,7 +55,7 @@ as.matrix(names(dat))
 #| warning: FALSE
 #| echo: FALSE
 
-p1 <- lapply(seq(1,length(dat)), function(i){spectralplot(dat[[i]], normalize = TRUE, guessPop = FALSE)$data})
+p1 <- lapply(seq(1,length(dat)), function(i){spectralplot(dat[[i]], normalize = TRUE, guessPop = TRUE, unstained = uni_neg)$data})
 
 #Name the list of new dfs
  names(p1) <- gsub("./ref control/", "",names(dat))
